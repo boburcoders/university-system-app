@@ -1,0 +1,349 @@
+package com.company.student.app.service.impl;
+
+import com.company.student.app.config.security.UserSession;
+import com.company.student.app.config.storage.MinioService;
+import com.company.student.app.dto.*;
+import com.company.student.app.model.*;
+import com.company.student.app.repository.*;
+import com.company.student.app.service.TeacherProfileService;
+import com.company.student.app.service.mapper.*;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.util.List;
+
+@Component
+@RequiredArgsConstructor
+public class TeacherProfileServiceImpl implements TeacherProfileService {
+    private final UserSession userSession;
+    private final AuthUserRepository authUserRepository;
+    private final TimeTableRepository timeTableRepository;
+    private final TeacherProfileRepository teacherProfileRepository;
+    private final LessonRepository lessonRepository;
+    private final TeacherProfileMapper teacherProfileMapper;
+    private final TimeTableMapper timeTableMapper;
+    private final GroupRepository groupRepository;
+    private final CourseRepository courseRepository;
+    private final CourseAssignmentRepository courseAssignmentRepository;
+    private final CourseMapper courseMapper;
+    private final LessonMapper lessonMapper;
+    private final GroupMapper groupMapper;
+    private final StudentProfileRepository studentProfileRepository;
+    private final StudentProfileMapper studentProfileMapper;
+    private final PasswordEncoder passwordEncoder;
+    private final MinioService minioService;
+    private final LessonMaterialRepository lessonMaterialRepository;
+    private final LessonMaterialMapper lessonMaterialMapper;
+
+
+    @Override
+    public HttpApiResponse<TeacherProfileResponse> getTeacherProfile() {
+
+        return HttpApiResponse.<TeacherProfileResponse>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(teacherProfileMapper.mapToProfileResponse(getCurrentTeacher()))
+                .build();
+    }
+
+    @Override
+    public HttpApiResponse<List<TimeTableResponse>> getTimeTable(LocalDate startDate, LocalDate endDate, DayOfWeek day) {
+        Long universityId = userSession.universityId();
+
+        List<TimeTable> timeTables;
+
+        if (day != null) {
+            timeTables = timeTableRepository
+                    .findAllByOrganizationIdAndTeacherIdAndDayOfWeekAndDeletedAtIsNull(universityId, getCurrentTeacher().getId(), day);
+        } else if (startDate != null && endDate != null) {
+
+            List<DayOfWeek> days = startDate.datesUntil(endDate.plusDays(1))
+                    .map(LocalDate::getDayOfWeek)
+                    .distinct()
+                    .toList();
+
+            timeTables = timeTableRepository
+                    .findAllByOrganizationIdAndTeacherIdAndDayOfWeekInAndDeletedAtIsNull(universityId, getCurrentTeacher().getId(), days);
+        } else {
+            timeTables = timeTableRepository
+                    .findAllByOrganizationIdAndTeacherIdAndDeletedAtIsNull(universityId, getCurrentTeacher().getId());
+        }
+
+        List<TimeTableResponse> responseList = timeTableMapper.mapToResponseList(timeTables);
+
+        return HttpApiResponse.<List<TimeTableResponse>>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(responseList)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public HttpApiResponse<Boolean> createLesson(LessonCreateRequest request) {
+        Long universityId = userSession.universityId();
+        TeacherProfile profile = getCurrentTeacher();
+
+        boolean exists = courseAssignmentRepository.existsByTeacherIdAndCourseIdAndGroupIdAndOrganizationId(
+                profile.getId(),
+                request.getCourseId(),
+                request.getGroupId(),
+                universityId
+        );
+        if (!exists)
+            throw new IllegalArgumentException("not.allowed");
+
+        Course course = courseRepository.findByIdAndOrganisationId(request.getCourseId(), universityId)
+                .orElseThrow(() -> new EntityNotFoundException("course.not.found"));
+
+
+        Lesson lesson = lessonMapper.mapToLesson(request);
+
+        lesson.setCourse(course);
+        lesson.setOrganizationId(universityId);
+
+        lessonRepository.save(lesson);
+
+        return HttpApiResponse.<Boolean>builder()
+                .success(true)
+                .status(201)
+                .message("ok")
+                .data(true)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public HttpApiResponse<Boolean> createLessonMaterials(Long lessonId, LessonMaterialRequest request, List<MultipartFile> files) throws Exception {
+        Lesson lesson = lessonRepository.findByIdAndOrganizationIdAndDeletedAtIsNull(lessonId, userSession.universityId())
+                .orElseThrow(() -> new EntityNotFoundException("lesson.not.found"));
+        try {
+            for (MultipartFile file : files) {
+                String fileName = minioService.uploadFile(file);
+                String fileUrl = minioService.getFileUrl(fileName);
+
+                LessonMaterial lessonMaterial = LessonMaterial.builder()
+                        .title(request.getTitle())
+                        .description(request.getDescription())
+                        .lesson(lesson)
+                        .fileName(fileName)
+                        .fileUrl(fileUrl)
+                        .fileType(file.getContentType())
+                        .size(file.getSize())
+                        .build();
+
+                lessonMaterialRepository.save(lessonMaterial);
+            }
+            return HttpApiResponse.<Boolean>builder()
+                    .success(true)
+                    .status(201)
+                    .message("ok")
+                    .data(true)
+                    .build();
+        } catch (Exception e) {
+            return HttpApiResponse.<Boolean>builder()
+                    .success(false)
+                    .status(400)
+                    .message(e.getMessage())
+                    .build();
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public HttpApiResponse<List<LessonMaterialResponse>> getLessonMaterials(Long lessonId) {
+        List<LessonMaterial> lessonMaterials = lessonMaterialRepository.findAllByLessonIdAndOrganisationId(lessonId, userSession.universityId());
+        if (lessonMaterials.isEmpty())
+            return HttpApiResponse.<List<LessonMaterialResponse>>builder()
+                    .success(false)
+                    .status(404)
+                    .message("materail.not.found")
+                    .build();
+        return HttpApiResponse.<List<LessonMaterialResponse>>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(lessonMaterials.stream().map(lessonMaterialMapper::mapToLessonMaterialResponse).toList())
+                .build();
+    }
+
+    @Override
+    public HttpApiResponse<Page<CourseResponseDto>> getTeacherCourses(Pageable pageable) {
+        Long universityId = userSession.universityId();
+
+        TeacherProfile profile = getCurrentTeacher();
+
+        Page<Course> coursePage = courseAssignmentRepository.findTeacherCourses(profile.getId(), universityId, pageable);
+
+        return HttpApiResponse.<Page<CourseResponseDto>>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(coursePage.map(courseMapper::mapToCourseResponse))
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public HttpApiResponse<Page<LessonResponse>> getCourseLessons(Pageable pageable, Long courseId) {
+        Long universityId = userSession.universityId();
+
+        Page<Lesson> lessonPage = lessonRepository.findAllByCourseId(universityId, courseId, pageable);
+
+        return HttpApiResponse.<Page<LessonResponse>>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(lessonPage.map(lessonMapper::mapToLessonResponse))
+                .build();
+    }
+
+    @Override
+    public HttpApiResponse<Page<GroupResponse>> getTeacherGroups(Pageable pageable) {
+        Long universityId = userSession.universityId();
+
+        TeacherProfile profile = getCurrentTeacher();
+
+        Page<Group> teacherGroups = courseAssignmentRepository.findTeacherGroups(profile.getId(), universityId, pageable);
+
+        return HttpApiResponse.<Page<GroupResponse>>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(teacherGroups.map(groupMapper::mapToResponse))
+                .build();
+
+    }
+
+    @Override
+    public HttpApiResponse<Page<StudentAttendanceResponse>> getStudentsByGroupId(Long groupId, Pageable pageable) {
+        Long universityId = userSession.universityId();
+
+        boolean allowed = courseAssignmentRepository
+                .existsByTeacherIdAndGroupIdAndOrganizationIdAndDeletedAtIsNull(getCurrentTeacher().getId(), groupId, universityId);
+
+        if (!allowed)
+            throw new IllegalArgumentException("not.allowed");
+
+        Page<StudentProfile> profilePage = studentProfileRepository.findAllByGroupId(groupId, universityId, pageable);
+
+        return HttpApiResponse.<Page<StudentAttendanceResponse>>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(profilePage.map(studentProfileMapper::mapToStudentAttendanceResponse))
+                .build();
+    }
+
+    @Override
+    public HttpApiResponse<Boolean> createAttendance(Long lessonId, List<AttendanceRequestDto> dto) {
+
+        return null;
+    }
+
+    @Override
+    @Transactional
+    public HttpApiResponse<Boolean> updateProfile(TeacherUpdateRequest request) {
+        Long universityId = userSession.universityId();
+
+        TeacherProfile profile = getCurrentTeacher();
+
+        if (request.getUsername() != null) {
+            if (authUserRepository.existsByUsernameAndOrganizationIdAndDeletedAtIsNull(request.getUsername(), universityId)) {
+                throw new IllegalArgumentException("username.already.exist");
+            }
+            profile.getUser().setUsername(request.getUsername());
+        }
+
+        teacherProfileMapper.updateEntity(profile, request);
+
+        return HttpApiResponse.<Boolean>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(true)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public HttpApiResponse<Boolean> updatePassword(String oldPassword, String newPassword) {
+        Long userId = userSession.userId();
+        AuthUser authUser = authUserRepository.findByIdAndDeletedAtIsNull(userId)
+                .orElseThrow(() -> new EntityNotFoundException("user.not.found"));
+
+        if (!passwordEncoder.matches(oldPassword, authUser.getPassword()))
+            throw new IllegalArgumentException("password.incorrect");
+        authUser.setPassword(passwordEncoder.encode(newPassword));
+
+        return HttpApiResponse.<Boolean>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(true)
+                .build();
+    }
+
+    private TeacherProfile getCurrentTeacher() {
+        Long userId = userSession.userId();
+        Long universityId = userSession.universityId();
+        return teacherProfileRepository.findByUserIdAndOrganisationId(userId, universityId)
+                .orElseThrow(() -> new EntityNotFoundException("user.not.found"));
+    }
+
+    @Override
+    @Transactional
+    public HttpApiResponse<Boolean> uploadProfileImage(MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("file.is.empty");
+        }
+        String contentType = file.getContentType();
+
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new IllegalArgumentException("it should be image");
+        }
+        try {
+            String fileName = minioService.uploadFile(file);
+            String fileUrl = minioService.getFileUrl(fileName);
+            TeacherProfile currentTeacher = getCurrentTeacher();
+            currentTeacher.setAvatarUrl(fileUrl);
+
+            return HttpApiResponse.<Boolean>builder()
+                    .success(true)
+                    .status(200)
+                    .message("ok")
+                    .data(true)
+                    .build();
+        } catch (Exception e) {
+            return HttpApiResponse.<Boolean>builder()
+                    .success(false)
+                    .status(400)
+                    .message("unable to upload image")
+                    .build();
+        }
+    }
+
+    /*@Transactional
+    public void assignGroup(Long studentId, Long groupId) {
+
+        StudentProfile student = studentRepository
+                .findByIdAndOrganizationId(...)
+            .orElseThrow(...);
+
+        Group group = groupRepository
+                .findByIdAndOrganizationId(...)
+            .orElseThrow(...);
+
+        student.setGroup(group);
+    }*/
+}

@@ -1,0 +1,31 @@
+package com.company.student.app.service;
+
+import com.company.student.app.dto.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.util.List;
+
+@Service
+public interface StudentProfileService {
+    HttpApiResponse<StudentProfileResponse> getProfile();
+
+    HttpApiResponse<Page<CourseResponseDto>> getStudentCourses(Pageable pageable);
+
+    HttpApiResponse<Page<AttendanceResponse>> getStudentAttendances(Pageable pageable, LocalDate startDate, LocalDate endDate);
+
+    HttpApiResponse<Boolean> updateProfile(StudentProfileUpdateRequest request);
+
+    HttpApiResponse<Boolean> updatePassword(String oldPassword, String newPassword);
+
+    HttpApiResponse<Page<LessonResponse>> getCourseLessons(Pageable of, Long courseId);
+
+    HttpApiResponse<List<TimeTableResponse>> getTimeTableByGroupId(Long groupId);
+
+    HttpApiResponse<Boolean> uploadProfileImage(MultipartFile file);
+}

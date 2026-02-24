@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: Student-Management-System
+  profiles:
+    active: local
+
