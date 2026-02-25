@@ -1,21 +1,26 @@
 package com.company.student.app.service.impl;
 
+import com.company.student.app.config.security.TenantContext;
 import com.company.student.app.config.security.UserSession;
 import com.company.student.app.config.storage.MinioService;
 import com.company.student.app.dto.*;
 import com.company.student.app.model.*;
 import com.company.student.app.repository.*;
+import com.company.student.app.service.FileService;
 import com.company.student.app.service.TeacherProfileService;
 import com.company.student.app.service.mapper.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
@@ -42,7 +47,34 @@ public class TeacherProfileServiceImpl implements TeacherProfileService {
     private final MinioService minioService;
     private final LessonMaterialRepository lessonMaterialRepository;
     private final LessonMaterialMapper lessonMaterialMapper;
+    private final UniversityUserRoleRepository userRoleRepository;
+    private final FileService fileService;
 
+
+    @Override
+    public HttpApiResponse<UserMeResponse> getMe(Authentication authentication) {
+        Long universityId = TenantContext.getTenantId();
+
+        AuthUser authUser = authUserRepository.findByUserName(authentication.getName(), universityId)
+                .orElseThrow(() -> new EntityNotFoundException("user.not.found"));
+
+        UniversityUserRole userRole = userRoleRepository.findUserWithRole(authentication.getName(), universityId)
+                .orElseThrow(() -> new EntityNotFoundException("user.role.not.found"));
+
+        UserMeResponse response = UserMeResponse.builder()
+                .id(authUser.getId())
+                .universityId(universityId)
+                .username(authUser.getUsername())
+                .role(userRole.getRole().name())
+                .build();
+
+        return HttpApiResponse.<UserMeResponse>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(response)
+                .build();
+    }
 
     @Override
     public HttpApiResponse<TeacherProfileResponse> getTeacherProfile() {
@@ -124,22 +156,16 @@ public class TeacherProfileServiceImpl implements TeacherProfileService {
 
     @Override
     @Transactional
-    public HttpApiResponse<Boolean> createLessonMaterials(Long lessonId, LessonMaterialRequest request, List<MultipartFile> files) throws Exception {
+    public HttpApiResponse<Boolean> createLessonMaterials(Long lessonId, LessonMaterialRequest request, List<String> fileNames) {
         Lesson lesson = lessonRepository.findByIdAndOrganizationIdAndDeletedAtIsNull(lessonId, userSession.universityId())
                 .orElseThrow(() -> new EntityNotFoundException("lesson.not.found"));
         try {
-            for (MultipartFile file : files) {
-                String fileName = minioService.uploadFile(file);
-                String fileUrl = minioService.getFileUrl(fileName);
-
+            for (String fileName : fileNames) {
                 LessonMaterial lessonMaterial = LessonMaterial.builder()
                         .title(request.getTitle())
                         .description(request.getDescription())
-                        .lesson(lesson)
                         .fileName(fileName)
-                        .fileUrl(fileUrl)
-                        .fileType(file.getContentType())
-                        .size(file.getSize())
+                        .lesson(lesson)
                         .build();
 
                 lessonMaterialRepository.save(lessonMaterial);
@@ -301,37 +327,6 @@ public class TeacherProfileServiceImpl implements TeacherProfileService {
                 .orElseThrow(() -> new EntityNotFoundException("user.not.found"));
     }
 
-    @Override
-    @Transactional
-    public HttpApiResponse<Boolean> uploadProfileImage(MultipartFile file) {
-        if (file.isEmpty()) {
-            throw new IllegalArgumentException("file.is.empty");
-        }
-        String contentType = file.getContentType();
-
-        if (contentType == null || !contentType.startsWith("image/")) {
-            throw new IllegalArgumentException("it should be image");
-        }
-        try {
-            String fileName = minioService.uploadFile(file);
-            String fileUrl = minioService.getFileUrl(fileName);
-            TeacherProfile currentTeacher = getCurrentTeacher();
-            currentTeacher.setAvatarUrl(fileUrl);
-
-            return HttpApiResponse.<Boolean>builder()
-                    .success(true)
-                    .status(200)
-                    .message("ok")
-                    .data(true)
-                    .build();
-        } catch (Exception e) {
-            return HttpApiResponse.<Boolean>builder()
-                    .success(false)
-                    .status(400)
-                    .message("unable to upload image")
-                    .build();
-        }
-    }
 
     /*@Transactional
     public void assignGroup(Long studentId, Long groupId) {

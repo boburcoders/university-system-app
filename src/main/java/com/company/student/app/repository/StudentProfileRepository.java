@@ -23,4 +23,9 @@ public interface StudentProfileRepository extends JpaRepository<StudentProfile, 
 
     @Query("select sp from StudentProfile sp where sp.user.id=:userId and sp.organizationId=:universityId and sp.deletedAt is null ")
     Optional<StudentProfile> findByUserIdAndOrganizationId(Long userId, Long universityId);
+
+    Integer countByOrganizationIdAndDeletedAtIsNull(Long universityId);
+
+    @Query("select sp from StudentProfile sp where sp.id=:studentId and sp.organizationId=:universityId and sp.deletedAt is null")
+    Optional<StudentProfile> findByIdAndOrganizationId(Long studentId, Long universityId);
 }

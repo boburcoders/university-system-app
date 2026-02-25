@@ -11,7 +11,5 @@ import java.util.List;
 public interface AuthService {
     HttpApiResponse<TokenResponseDto> login(@Valid TokeRequestDto dto);
 
-    HttpApiResponse<UserMeResponse> getCurrentUser(Authentication authentication);
-
     HttpApiResponse<List<UniversityShortResponse>> getUniversitiesShortInfo();
 }

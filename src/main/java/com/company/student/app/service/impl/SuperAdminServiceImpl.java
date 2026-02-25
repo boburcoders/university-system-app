@@ -1,5 +1,6 @@
 package com.company.student.app.service.impl;
 
+import com.company.student.app.config.security.TenantContext;
 import com.company.student.app.config.security.UserSession;
 import com.company.student.app.config.storage.MinioService;
 import com.company.student.app.dto.*;
@@ -16,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +40,7 @@ public class SuperAdminServiceImpl implements SuperAdminService {
     private final UserSession userSession;
     private final PasswordEncoder passwordEncoder;
     private final MinioService minioService;
+    private final UniversityUserRoleRepository userRoleRepository;
 
     @Override
     @Transactional
@@ -81,6 +84,30 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                 .build();
     }
 
+    @Override
+    public HttpApiResponse<UserMeResponse> getMe(Authentication authentication) {
+        Long universityId = TenantContext.getTenantId();
+
+        AuthUser authUser = authUserRepository.findByUserName(authentication.getName(), universityId)
+                .orElseThrow(() -> new EntityNotFoundException("user.not.found"));
+
+        UniversityUserRole userRole = userRoleRepository.findUserWithRole(authentication.getName(), universityId)
+                .orElseThrow(() -> new EntityNotFoundException("user.role.not.found"));
+
+        UserMeResponse response = UserMeResponse.builder()
+                .id(authUser.getId())
+                .universityId(universityId)
+                .username(authUser.getUsername())
+                .role(userRole.getRole().name())
+                .build();
+
+        return HttpApiResponse.<UserMeResponse>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(response)
+                .build();
+    }
 
     @Override
     public HttpApiResponse<SuperAdminResponse> getProfile() {
@@ -193,32 +220,41 @@ public class SuperAdminServiceImpl implements SuperAdminService {
     @Override
     @Transactional
     public HttpApiResponse<Boolean> updateProfile(SystemAdminUpdateRequest request) {
-        Long organizationId = userSession.universityId();
 
+        Long organizationId = userSession.universityId();
         SystemAdminProfile profile = getCurrentSystemAdmin();
 
-        if (request.getEmail() != null) {
-            if (superAdminRepository.existsSystemAdminProfileByEmailAndOrganizationId(request.getEmail(), organizationId)) {
+        // EMAIL
+        if (request.getEmail() != null && !request.getEmail().equals(profile.getEmail())) {
+            if (superAdminRepository.existsSystemAdminProfileByEmailAndOrganizationId(
+                    request.getEmail(), organizationId)) {
                 throw new IllegalArgumentException("email.already.exists");
             }
         }
 
-        if (request.getPhoneNumber() != null) {
-            if (superAdminRepository.existsSystemAdminProfileByPhoneNumber((request.getEmail()))) {
+        // PHONE
+        if (request.getPhoneNumber() != null &&
+                !request.getPhoneNumber().equals(profile.getPhoneNumber())) {
+            if (superAdminRepository.existsSystemAdminProfileByPhoneNumber(
+                    request.getPhoneNumber())) {
                 throw new IllegalArgumentException("phoneNumber.already.exists");
             }
         }
 
         superAdminMapper.updateEntity(profile, request);
 
+        // USERNAME
         if (request.getUsername() != null) {
             AuthUser user = profile.getUser();
-            if (authUserRepository.existsByUsernameAndOrganizationIdAndDeletedAtIsNull(request.getUsername(), organizationId)) {
-                throw new IllegalArgumentException("username.already.exist");
+
+            if (!request.getUsername().equals(user.getUsername())) {
+                if (authUserRepository.existsByUsernameAndOrganizationIdAndDeletedAtIsNull(
+                        request.getUsername(), organizationId)) {
+                    throw new IllegalArgumentException("username.already.exist");
+                }
+                user.setUsername(request.getUsername());
             }
-            user.setUsername(request.getUsername());
         }
-        superAdminRepository.save(profile);
 
         return HttpApiResponse.<Boolean>builder()
                 .success(true)
@@ -228,37 +264,6 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                 .build();
     }
 
-    @Override
-    @Transactional
-    public HttpApiResponse<Boolean> uploadProfileImage(MultipartFile file) {
-        if (file.isEmpty()) {
-            throw new IllegalArgumentException("file.is.empty");
-        }
-        String contentType = file.getContentType();
-
-        if (contentType == null || !contentType.startsWith("image/")) {
-            throw new IllegalArgumentException("it should be image");
-        }
-        try {
-            String fileName = minioService.uploadFile(file);
-            String fileUrl = minioService.getFileUrl(fileName);
-            com.company.student.app.model.SystemAdminProfile profile = getCurrentSystemAdmin();
-            profile.setAvatarUrl(fileUrl);
-
-            return HttpApiResponse.<Boolean>builder()
-                    .success(true)
-                    .status(200)
-                    .message("ok")
-                    .data(true)
-                    .build();
-        } catch (Exception e) {
-            return HttpApiResponse.<Boolean>builder()
-                    .success(false)
-                    .status(400)
-                    .message("unable to upload image")
-                    .build();
-        }
-    }
 
     private SystemAdminProfile getCurrentSystemAdmin() {
         Long userId = userSession.userId();

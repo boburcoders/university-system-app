@@ -1,5 +1,6 @@
 package com.company.student.app.service.mapper;
 
+import com.company.student.app.dto.UniversityAdminProfileResponse;
 import com.company.student.app.dto.UniversityAdminRequest;
 import com.company.student.app.dto.UniversityAdminUpdateRequest;
 import com.company.student.app.model.AuthUser;
@@ -14,4 +15,6 @@ public abstract class UniversityAdminMapper {
 
 
     public abstract void updateEntity(@MappingTarget UniversityAdminProfile adminProfile, UniversityAdminUpdateRequest request);
+
+    public abstract UniversityAdminProfileResponse mapToProfileResponse(UniversityAdminProfile adminProfile);
 }

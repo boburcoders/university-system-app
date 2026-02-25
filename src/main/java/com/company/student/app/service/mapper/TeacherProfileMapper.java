@@ -16,6 +16,5 @@ public abstract class TeacherProfileMapper {
     public abstract TeacherProfileResponse mapToProfileResponse(TeacherProfile profile);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(target = "address", ignore = true)
     public abstract void updateEntity(@MappingTarget TeacherProfile profile, TeacherUpdateRequest request);
 }

@@ -3,6 +3,7 @@ package com.company.student.app.service;
 import com.company.student.app.dto.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,9 +33,10 @@ public interface TeacherProfileService {
 
     HttpApiResponse<Boolean> updatePassword(String oldPassword, String newPassword);
 
-    HttpApiResponse<Boolean> createLessonMaterials(Long lessonId, LessonMaterialRequest request, List<MultipartFile> files) throws Exception;
+    HttpApiResponse<Boolean> createLessonMaterials(Long lessonId, LessonMaterialRequest request, List<String> fileNames);
 
     HttpApiResponse<List<LessonMaterialResponse>> getLessonMaterials(Long lessonId);
 
-    HttpApiResponse<Boolean> uploadProfileImage(MultipartFile file);
+
+    HttpApiResponse<UserMeResponse> getMe(Authentication authentication);
 }

@@ -8,10 +8,9 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UniversityResponse {
-    private Long id;
-    private String name;
+public class CourseRequestDto {
     private String code;
-    private String description;
+    private String title;
     private String logoName;
+    private String description;
 }

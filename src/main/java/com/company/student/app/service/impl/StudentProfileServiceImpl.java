@@ -1,20 +1,19 @@
 package com.company.student.app.service.impl;
 
+import com.company.student.app.config.security.TenantContext;
 import com.company.student.app.config.security.UserSession;
 import com.company.student.app.config.storage.MinioService;
 import com.company.student.app.dto.*;
 import com.company.student.app.model.*;
 import com.company.student.app.repository.*;
 import com.company.student.app.service.StudentProfileService;
-import com.company.student.app.service.mapper.CourseMapper;
-import com.company.student.app.service.mapper.LessonMapper;
-import com.company.student.app.service.mapper.StudentProfileMapper;
-import com.company.student.app.service.mapper.TimeTableMapper;
+import com.company.student.app.service.mapper.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +40,34 @@ public class StudentProfileServiceImpl implements StudentProfileService {
     private final AuthUserRepository authUserRepository;
     private final PasswordEncoder passwordEncoder;
     private final MinioService minioService;
+    private final GroupRepository groupRepository;
+    private final GroupMapper groupMapper;
+    private final UniversityUserRoleRepository userRoleRepository;
+
+    @Override
+    public HttpApiResponse<UserMeResponse> getMe(Authentication authentication) {
+        Long universityId = TenantContext.getTenantId();
+
+        AuthUser authUser = authUserRepository.findByUserName(authentication.getName(), universityId)
+                .orElseThrow(() -> new EntityNotFoundException("user.not.found"));
+
+        UniversityUserRole userRole = userRoleRepository.findUserWithRole(authentication.getName(), universityId)
+                .orElseThrow(() -> new EntityNotFoundException("user.role.not.found"));
+
+        UserMeResponse response = UserMeResponse.builder()
+                .id(authUser.getId())
+                .universityId(universityId)
+                .username(authUser.getUsername())
+                .role(userRole.getRole().name())
+                .build();
+
+        return HttpApiResponse.<UserMeResponse>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(response)
+                .build();
+    }
 
     private StudentProfile getCurrentStudent() {
         return studentProfileRepository.findByUserIdAndOrganizationId(userSession.userId(), userSession.universityId()).
@@ -93,6 +120,18 @@ public class StudentProfileServiceImpl implements StudentProfileService {
     }
 
     @Override
+    public HttpApiResponse<List<GroupShortResponse>> getAllGroupShortResponse() {
+        List<Group> groupList = groupRepository.getAllByOrganizationId(userSession.universityId());
+
+        return HttpApiResponse.<List<GroupShortResponse>>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(groupList.stream().map(groupMapper::mapToShortResponse).toList())
+                .build();
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public HttpApiResponse<List<TimeTableResponse>> getTimeTableByGroupId(Long groupId) {
         List<TimeTable> timeTables =
@@ -121,40 +160,6 @@ public class StudentProfileServiceImpl implements StudentProfileService {
                 .message("ok")
                 .data(true)
                 .build();
-    }
-
-    @Override
-    @Transactional
-    public HttpApiResponse<Boolean> uploadProfileImage(MultipartFile file) {
-        if (file.isEmpty()) {
-            throw new IllegalArgumentException("file.is.empty");
-        }
-        String contentType = file.getContentType();
-
-        if (contentType == null || !contentType.startsWith("image/")) {
-            throw new IllegalArgumentException("it should be image");
-        }
-        try {
-            String fileName = minioService.uploadFile(file);
-            String fileUrl = minioService.getFileUrl(fileName);
-
-            StudentProfile profile = getCurrentStudent();
-            profile.setAvatarUrl(fileUrl);
-
-            return HttpApiResponse.<Boolean>builder()
-                    .success(true)
-                    .status(200)
-                    .message("ok")
-                    .data(true)
-                    .build();
-
-        } catch (Exception e) {
-            return HttpApiResponse.<Boolean>builder()
-                    .success(false)
-                    .status(400)
-                    .message("unable to upload image")
-                    .build();
-        }
     }
 
     @Override

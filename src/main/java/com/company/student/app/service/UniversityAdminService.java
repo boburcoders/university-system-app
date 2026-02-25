@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -34,5 +35,33 @@ public interface UniversityAdminService {
 
     HttpApiResponse<Boolean> updatePassword(String oldPassword, String newPassword);
 
-    HttpApiResponse<Boolean> uploadProfileImage(MultipartFile file);
+    HttpApiResponse<UniversityAdminProfileResponse> getUniversityAdminProfile();
+
+    HttpApiResponse<UserMeResponse> getMe(Authentication authentication);
+
+    HttpApiResponse<Boolean> createCourse(Long facultyId, CourseRequestDto requestDto);
+
+    HttpApiResponse<Boolean> createGroup(Long facultyId, GroupRequestDto requestDto);
+
+    HttpApiResponse<Boolean> createFaculty(Long departmentId, FacultyRequestDto requestDto);
+
+    HttpApiResponse<Page<DepartmentResponse>> getAllDepartmentInUniversity(Pageable pageable);
+
+    HttpApiResponse<Boolean> createDepartment(DepartmentRequestDto requestDto);
+
+    HttpApiResponse<Boolean> updateDepartment(DepartmentUpdateRequest request, Long departmentId);
+
+    HttpApiResponse<Boolean> updateFaculty(FacultyUpdateRequest request,Long facultyId);
+
+    HttpApiResponse<Boolean> removeStudent(Long studentId);
+
+    HttpApiResponse<Boolean> removeCourse(Long courseId);
+
+    HttpApiResponse<Boolean> removeDepartment(Long departmentId);
+
+    HttpApiResponse<Boolean> removeFaculty(Long facultyId);
+
+    HttpApiResponse<StatisticResponse> getStatisticsDashboard();
+
+    HttpApiResponse<Boolean> removeGroup(Long groupId);
 }

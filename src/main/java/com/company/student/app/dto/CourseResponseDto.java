@@ -12,7 +12,7 @@ public class CourseResponseDto {
     private Long id;
     private String code;
     private String title;
-    private String logoUrl;
+    private String logoName;
     private String description;
     private String facultyName;
 }

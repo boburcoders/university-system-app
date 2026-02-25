@@ -21,7 +21,7 @@ public class TeacherProfileResponse {
     private String description;
     private String email;
     private String phoneNumber;
-    private String avatarUrl;
+    private String logoName;
     private String username;
     private String password;
     private AddressResponseDto address;

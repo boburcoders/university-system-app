@@ -11,8 +11,7 @@ public class LessonMaterialResponse {
     private Long id;
     private String title;
     private String description;
-    private String fileUrl;
-    private Long size;
+    private String fileName;
 
 
 }

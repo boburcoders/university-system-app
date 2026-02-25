@@ -30,4 +30,6 @@ public interface TeacherProfileRepository extends JpaRepository<TeacherProfile, 
 
     @Query("select tp from TeacherProfile tp where tp.user.id=:userId and tp.organizationId=:orgId and tp.deletedAt is null ")
     Optional<TeacherProfile> findByUserIdAndOrganisationId(Long userId, Long orgId);
+
+    Integer countByOrganizationIdAndDeletedAtIsNull(Long universityId);
 }

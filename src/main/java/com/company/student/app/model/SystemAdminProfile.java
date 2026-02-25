@@ -10,19 +10,19 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-public class SystemAdminProfile extends MultiTenantEntity{
+public class SystemAdminProfile extends MultiTenantEntity {
     private String firstName;
     private String lastName;
     private String middleName;
 
-    @Column(nullable = false,unique = true)
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false,unique = true)
+    @Column(nullable = false, unique = true)
     private String phoneNumber;
 
     @Column(length = 500)
-    private String avatarUrl;
+    private String logoName;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

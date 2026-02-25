@@ -20,7 +20,7 @@ public class Course extends MultiTenantEntity{
     private String title;
 
     @Column(length = 500)
-    private String logoUrl;
+    private String logoName;
 
     @Column(columnDefinition = "TEXT")
     private String description;

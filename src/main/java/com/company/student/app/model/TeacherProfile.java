@@ -27,7 +27,7 @@ public class TeacherProfile extends MultiTenantEntity {
     private String phoneNumber;
 
     @Column(length = 500)
-    private String avatarUrl;
+    private String logoName;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

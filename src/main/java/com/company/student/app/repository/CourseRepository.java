@@ -2,9 +2,11 @@ package com.company.student.app.repository;
 
 import com.company.student.app.model.Course;
 import jakarta.validation.constraints.NotBlank;
+import org.checkerframework.checker.units.qual.C;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -37,4 +39,25 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
             Pageable pageable);
 
 
+    Integer countByOrganizationIdAndDeletedAtIsNull(Long universityId);
+
+    boolean existsByCodeAndOrganizationIdAndDeletedAtIsNull(String code, Long universityId);
+
+
+    @Modifying
+    @Query("""
+            update Course c
+            set c.deletedAt = CURRENT_TIMESTAMP
+            where c.faculty.department.id = :departmentId
+            """)
+    void softDeleteCoursesByDepartment(Long departmentId);
+
+    @Modifying
+    @Query("""
+            update Course c
+            set c.deletedAt = CURRENT_TIMESTAMP
+            where c.faculty.id = :facultyId
+            and c.deletedAt is null
+            """)
+    void softDeleteCoursesByFaculty(Long facultyId);
 }

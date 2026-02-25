@@ -1,6 +1,6 @@
 package com.company.student.app.dto;
 
-import jakarta.persistence.Column;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 @Getter
@@ -8,10 +8,9 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UniversityResponse {
-    private Long id;
+public class DepartmentRequestDto {
+    @NotBlank
     private String name;
-    private String code;
-    private String description;
+    @NotBlank
     private String logoName;
 }

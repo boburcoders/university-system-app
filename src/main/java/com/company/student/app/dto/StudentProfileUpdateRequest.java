@@ -12,5 +12,7 @@ public class StudentProfileUpdateRequest {
     private String lastName;
     private String middleName;
     private String phoneNumber;
+    private String logoName;
+
 
 }

@@ -1,6 +1,5 @@
 package com.company.student.app.dto;
 
-import jakarta.persistence.Column;
 import lombok.*;
 
 @Getter
@@ -8,10 +7,8 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UniversityResponse {
+public class GroupShortResponse {
     private Long id;
     private String name;
     private String code;
-    private String description;
-    private String logoName;
 }

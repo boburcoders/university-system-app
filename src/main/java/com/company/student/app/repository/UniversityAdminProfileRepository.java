@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface UniversityAdminProfileRepository extends JpaRepository<UniversityAdminProfile, Long> {
     boolean existsUniversityAdminProfileByEmail(String email);
 
-    @Query("select ua from UniversityUserRole ua where ua.user.id=:userId and ua.deletedAt is null and ua.organizationId=:universityId")
+    @Query("select ua from UniversityAdminProfile ua where ua.user.id=:userId and ua.deletedAt is null and ua.organizationId=:universityId")
     Optional<UniversityAdminProfile> findByUserIdAndDeletedIsNull(Long userId, Long universityId);
 
 }

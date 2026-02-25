@@ -1,8 +1,10 @@
 package com.company.student.app.service.impl;
 
-import com.company.student.app.config.security.TenantContext;
 import com.company.student.app.config.security.jwt.JwtService;
-import com.company.student.app.dto.*;
+import com.company.student.app.dto.HttpApiResponse;
+import com.company.student.app.dto.TokeRequestDto;
+import com.company.student.app.dto.TokenResponseDto;
+import com.company.student.app.dto.UniversityShortResponse;
 import com.company.student.app.model.AuthUser;
 import com.company.student.app.model.University;
 import com.company.student.app.model.UniversityUserRole;
@@ -10,11 +12,9 @@ import com.company.student.app.repository.AuthUserRepository;
 import com.company.student.app.repository.UniversityRepository;
 import com.company.student.app.repository.UniversityUserRoleRepository;
 import com.company.student.app.service.AuthService;
-import com.company.student.app.service.mapper.AuthUserMapper;
 import com.company.student.app.service.mapper.UniversityMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -29,36 +29,7 @@ public class AuthServiceImpl implements AuthService {
     private final UniversityUserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private final AuthUserMapper authUserMapper;
     private final UniversityMapper universityMapper;
-
-    @Override
-    public HttpApiResponse<UserMeResponse> getCurrentUser(Authentication authentication) {
-        Long universityId = TenantContext.getTenantId();
-
-        AuthUser authUser = authUserRepository.findByUserName(authentication.getName(), universityId)
-                .orElseThrow(() -> new EntityNotFoundException("user.not.found"));
-
-        University university = universityRepository.findByIdAndDeletedAtIsNull(universityId)
-                .orElseThrow(() -> new EntityNotFoundException("university.not.found"));
-
-        UniversityUserRole userRole = userRoleRepository.findUserWithRole(authentication.getName(), universityId)
-                .orElseThrow(() -> new EntityNotFoundException("user.role.not.found"));
-
-        UserMeResponse response = UserMeResponse.builder()
-                .id(authUser.getId())
-                .universityId(universityId)
-                .username(authUser.getUsername())
-                .role(userRole.getRole().name())
-                .build();
-
-        return HttpApiResponse.<UserMeResponse>builder()
-                .success(true)
-                .status(200)
-                .message("ok")
-                .data(response)
-                .build();
-    }
 
     @Override
     public HttpApiResponse<TokenResponseDto> login(TokeRequestDto dto) {

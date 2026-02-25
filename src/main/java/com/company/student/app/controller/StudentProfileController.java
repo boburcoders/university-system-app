@@ -7,6 +7,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,8 +19,15 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/student-profile")
+@PreAuthorize("hasRole('STUDENT')")
 public class StudentProfileController {
     private final StudentProfileService profileService;
+
+    @GetMapping("/me")
+    public ResponseEntity<HttpApiResponse<UserMeResponse>> getCurrentUser(Authentication authentication) {
+        HttpApiResponse<UserMeResponse> response = profileService.getMe(authentication);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
 
     @GetMapping("/profile")
     public ResponseEntity<HttpApiResponse<StudentProfileResponse>> getProfile() {
@@ -59,6 +68,12 @@ public class StudentProfileController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
+    @GetMapping("/get-all-group")
+    public ResponseEntity<HttpApiResponse<List<GroupShortResponse>>> getAllGroup() {
+        HttpApiResponse<List<GroupShortResponse>> response = profileService.getAllGroupShortResponse();
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
     @GetMapping("/get-time-table/{groupId}")
     public ResponseEntity<HttpApiResponse<List<TimeTableResponse>>> getTimeTableByGroupId(
             @PathVariable Long groupId
@@ -67,11 +82,6 @@ public class StudentProfileController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @PostMapping(value = "/upload-profile-image",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<HttpApiResponse<Boolean>> uploadProfileImage(@RequestParam MultipartFile file) {
-        HttpApiResponse<Boolean> response = profileService.uploadProfileImage(file);
-        return ResponseEntity.status(response.getStatus()).body(response);
-    }
 
     @PutMapping("/update-profile")
     public ResponseEntity<HttpApiResponse<Boolean>> updateProfile(@RequestBody StudentProfileUpdateRequest request) {

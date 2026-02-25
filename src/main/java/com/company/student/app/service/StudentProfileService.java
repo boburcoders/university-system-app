@@ -4,6 +4,7 @@ import com.company.student.app.dto.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,5 +28,7 @@ public interface StudentProfileService {
 
     HttpApiResponse<List<TimeTableResponse>> getTimeTableByGroupId(Long groupId);
 
-    HttpApiResponse<Boolean> uploadProfileImage(MultipartFile file);
+    HttpApiResponse<List<GroupShortResponse>> getAllGroupShortResponse();
+
+    HttpApiResponse<UserMeResponse> getMe(Authentication authentication);
 }

@@ -17,6 +17,7 @@ import java.util.List;
 @Configuration
 public class SwaggerDocs {
 
+
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
@@ -70,6 +71,10 @@ public class SwaggerDocs {
                 GroupedOpenApi.builder()
                         .group("auth")
                         .pathsToMatch("/api/auth/**")
+                        .build(),
+                GroupedOpenApi.builder()
+                        .group("file")
+                        .pathsToMatch("/api/file/**")
                         .build()
         );
     }

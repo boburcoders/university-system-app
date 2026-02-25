@@ -16,6 +16,6 @@ public class StudentShortResponse {
     private String studentNumber;
     private String phoneNumber;
     private String email;
-    private String avatarUrl;
+    private String logoName;
     private String groupName;
 }

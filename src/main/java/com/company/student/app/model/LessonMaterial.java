@@ -26,7 +26,4 @@ public class LessonMaterial extends MultiTenantEntity {
     private Lesson lesson;
 
     private String fileName;
-    private String fileUrl;
-    private String fileType;
-    private Long size;
 }

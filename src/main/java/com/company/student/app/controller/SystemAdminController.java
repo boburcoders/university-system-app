@@ -1,17 +1,15 @@
 package com.company.student.app.controller;
 
 import com.company.student.app.dto.*;
-import com.company.student.app.model.SystemAdminProfile;
 import com.company.student.app.service.SuperAdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -45,6 +43,12 @@ public class SystemAdminController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<HttpApiResponse<UserMeResponse>> getCurrentUser(Authentication authentication) {
+        HttpApiResponse<UserMeResponse> response = superAdminService.getMe(authentication);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
     @GetMapping("/getAll-university")
     public ResponseEntity<HttpApiResponse<Page<UniversityResponse>>> getAllUniversity(
             @RequestParam(defaultValue = "0") Integer page,
@@ -67,12 +71,6 @@ public class SystemAdminController {
             @PathVariable Long universityId) {
 
         HttpApiResponse<Boolean> response = superAdminService.deleteUniversity(universityId);
-        return ResponseEntity.status(response.getStatus()).body(response);
-    }
-
-    @PostMapping(value = "/upload-profile-image",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<HttpApiResponse<Boolean>> uploadProfileImage(@RequestParam MultipartFile file) {
-        HttpApiResponse<Boolean> response = superAdminService.uploadProfileImage(file);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
