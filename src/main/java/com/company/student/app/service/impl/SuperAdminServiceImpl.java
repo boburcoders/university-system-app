@@ -41,6 +41,16 @@ public class SuperAdminServiceImpl implements SuperAdminService {
     private final PasswordEncoder passwordEncoder;
     private final MinioService minioService;
     private final UniversityUserRoleRepository userRoleRepository;
+    private final DepartmentRepository departmentRepository;
+    private final FacultyRepository facultyRepository;
+    private final StudentProfileRepository studentProfileRepository;
+    private final TeacherProfileRepository teacherProfileRepository;
+    private final LessonMaterialRepository lessonMaterialRepository;
+    private final LessonRepository lessonRepository;
+    private final CourseRepository courseRepository;
+    private final GroupRepository groupRepository;
+    private final CourseAssignmentRepository courseAssignmentRepository;
+    private final TimeTableRepository timeTableRepository;
 
     @Override
     @Transactional
@@ -141,13 +151,31 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                 .build();
     }
 
+    @Transactional
     @Override
     public HttpApiResponse<Boolean> deleteUniversity(Long universityId) {
         University university = universityRepository.findByIdAndDeletedAtIsNull(universityId)
                 .orElseThrow(() -> new EntityNotFoundException("entity.not.found"));
-        university.setDeletedAt(LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
 
-        universityRepository.save(university);
+        // 🔥 ORDER muhim (child → parent)
+        lessonMaterialRepository.softDeleteByUniversity(universityId, now);
+        lessonRepository.softDeleteByUniversity(universityId, now);
+        courseRepository.softDeleteByUniversity(universityId, now);
+        courseAssignmentRepository.softDeleteByUniversity(universityId, now);
+        groupRepository.softDeleteByUniversity(universityId, now);
+        timeTableRepository.softDeleteByUniversity(universityId, now);
+        facultyRepository.softDeleteByUniversity(universityId, now);
+        departmentRepository.softDeleteByUniversity(universityId, now);
+
+        studentProfileRepository.softDeleteByUniversity(universityId, now);
+        teacherProfileRepository.softDeleteByUniversity(universityId, now);
+        universityAdminProfileRepository.softDeleteByUniversity(universityId, now);
+
+        userRoleRepository.softDeleteByUniversity(universityId, now);
+        authUserRepository.softDeleteByUniversity(universityId, now);
+
+        university.setDeletedAt(now);
 
         return HttpApiResponse.<Boolean>builder()
                 .success(true)

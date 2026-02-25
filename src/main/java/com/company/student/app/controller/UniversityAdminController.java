@@ -52,13 +52,13 @@ public class UniversityAdminController {
 
 
     @PostMapping(value = "/create-course/{faculty_id}")
-    public ResponseEntity<HttpApiResponse<Boolean>> createCourse(@PathVariable Long faculty_id, @RequestBody CourseRequestDto requestDto) {
+    public ResponseEntity<HttpApiResponse<Boolean>> createCourse(@PathVariable Long faculty_id, @RequestBody @Valid CourseRequestDto requestDto) {
         HttpApiResponse<Boolean> response = universityAdminService.createCourse(faculty_id, requestDto);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
     @PostMapping(value = "/create-group/{faculty_id}")
-    public ResponseEntity<HttpApiResponse<Boolean>> createGroup(@PathVariable Long faculty_id, @RequestBody GroupRequestDto requestDto) {
+    public ResponseEntity<HttpApiResponse<Boolean>> createGroup(@PathVariable Long faculty_id, @RequestBody @Valid GroupRequestDto requestDto) {
         HttpApiResponse<Boolean> response = universityAdminService.createGroup(faculty_id, requestDto);
         return ResponseEntity.status(response.getStatus()).body(response);
     }

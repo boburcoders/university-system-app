@@ -7,8 +7,11 @@ import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
 
 @Repository
 public interface CourseAssignmentRepository extends JpaRepository<CourseAssignment, Long> {
@@ -28,4 +31,12 @@ public interface CourseAssignmentRepository extends JpaRepository<CourseAssignme
     boolean existsByTeacherIdAndCourseIdAndGroupIdAndOrganizationId(Long id, @NotBlank Long courseId, @NotBlank Long groupId, Long universityId);
 
     boolean existsByTeacherIdAndGroupIdAndOrganizationIdAndDeletedAtIsNull(Long teacherId, Long groupId, Long universityId);
+
+    @Modifying
+    @Query("""
+             update CourseAssignment ca
+             set ca.deletedAt=:now
+             where ca.organizationId=:universityId and ca.deletedAt is null
+            """)
+    void softDeleteByUniversity(Long universityId, LocalDateTime now);
 }

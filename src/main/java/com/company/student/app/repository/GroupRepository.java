@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,4 +36,12 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
             and g.deletedAt is null
             """)
     void softDeleteGroupsByFaculty(Long facultyId);
+
+    @Modifying
+    @Query("""
+             update Group g
+             set g.deletedAt=:now
+             where g.organizationId=:universityId and g.deletedAt is null
+            """)
+    void softDeleteByUniversity(Long universityId, LocalDateTime now);
 }

@@ -335,7 +335,12 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
         Long universityId = userSession.universityId();
         University university = universityRepository.findByIdAndDeletedAtIsNull(universityId)
                 .orElseThrow(() -> new EntityNotFoundException("university.not.found"));
-
+        if (universityRepository.existsUniversitiesByCodeAndDeletedAtIsNull(request.getCode())) {
+            throw new IllegalArgumentException("code.already.exists");
+        }
+        if (universityRepository.existsUniversitiesByNameAndDeletedAtIsNull(request.getName())) {
+            throw new IllegalArgumentException("name.already.exists");
+        }
         universityMapper.updateUniversity(university, request);
 
         return HttpApiResponse.<Boolean>builder()

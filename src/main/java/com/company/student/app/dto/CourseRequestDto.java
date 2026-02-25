@@ -1,6 +1,6 @@
 package com.company.student.app.dto;
 
-import jakarta.persistence.Column;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 @Getter
@@ -9,8 +9,12 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class CourseRequestDto {
+    @NotBlank
     private String code;
+    @NotBlank
     private String title;
+    @NotBlank
     private String logoName;
+    @NotBlank
     private String description;
 }

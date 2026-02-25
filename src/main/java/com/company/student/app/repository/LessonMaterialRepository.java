@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -38,4 +39,12 @@ public interface LessonMaterialRepository extends JpaRepository<LessonMaterial, 
             and lm.deletedAt is null
             """)
     void softDeleteMaterialsByFaculty(Long facultyId);
+
+    @Modifying
+    @Query("""
+             update LessonMaterial lm
+             set lm.deletedAt=:now
+             where lm.organizationId=:universityId and lm.deletedAt is null
+            """)
+    void softDeleteByUniversity(Long universityId, LocalDateTime now);
 }

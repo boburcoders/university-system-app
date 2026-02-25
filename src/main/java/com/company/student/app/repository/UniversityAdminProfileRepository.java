@@ -2,9 +2,11 @@ package com.company.student.app.repository;
 
 import com.company.student.app.model.UniversityAdminProfile;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Repository
@@ -14,4 +16,12 @@ public interface UniversityAdminProfileRepository extends JpaRepository<Universi
     @Query("select ua from UniversityAdminProfile ua where ua.user.id=:userId and ua.deletedAt is null and ua.organizationId=:universityId")
     Optional<UniversityAdminProfile> findByUserIdAndDeletedIsNull(Long userId, Long universityId);
 
+    @Modifying
+    @Query("""
+             update UniversityAdminProfile ua
+             set ua.deletedAt=:now
+             where ua.organizationId=:universityId and ua.deletedAt is null
+            """)
+    void softDeleteByUniversity(Long universityId, LocalDateTime now);
 }
+
