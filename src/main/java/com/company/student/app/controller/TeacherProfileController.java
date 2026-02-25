@@ -38,11 +38,10 @@ public class TeacherProfileController {
 
     @GetMapping("/get-time-table")
     public ResponseEntity<HttpApiResponse<List<TimeTableResponse>>> getTimeTable(
-            @RequestParam(required = false) LocalDate startDate,
-            @RequestParam(required = false) LocalDate endDate,
-            @RequestParam(required = false) DayOfWeek day
+            @RequestParam(required = false) Long teacherId,
+            @RequestParam(required = false) Long groupId
     ) {
-        HttpApiResponse<List<TimeTableResponse>> response = teacherProfileService.getTimeTable(startDate, endDate, day);
+        HttpApiResponse<List<TimeTableResponse>> response = teacherProfileService.getTimeTable(teacherId, groupId);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 

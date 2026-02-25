@@ -26,9 +26,11 @@ public interface StudentProfileService {
 
     HttpApiResponse<Page<LessonResponse>> getCourseLessons(Pageable of, Long courseId);
 
-    HttpApiResponse<List<TimeTableResponse>> getTimeTableByGroupId(Long groupId);
+    HttpApiResponse<List<TimeTableResponse>> getTimeTable(Long teacherId, Long groupId);
 
     HttpApiResponse<List<GroupShortResponse>> getAllGroupShortResponse();
 
     HttpApiResponse<UserMeResponse> getMe(Authentication authentication);
+
+    HttpApiResponse<List<TeacherResponse>> getAllTeacher();
 }

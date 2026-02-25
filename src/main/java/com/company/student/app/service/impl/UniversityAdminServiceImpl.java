@@ -2,7 +2,6 @@ package com.company.student.app.service.impl;
 
 import com.company.student.app.config.security.TenantContext;
 import com.company.student.app.config.security.UserSession;
-import com.company.student.app.config.storage.MinioService;
 import com.company.student.app.dto.*;
 import com.company.student.app.model.*;
 import com.company.student.app.model.enums.UniversityRole;
@@ -43,7 +42,6 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
     private final GroupMapper groupMapper;
     private final FacultyRepository facultyRepository;
     private final FacultyMapper facultyMapper;
-    private final MinioService minioService;
     private final DepartmentRepository departmentRepository;
     private final DepartmentMapper departmentMapper;
     private final LessonRepository lessonRepository;
@@ -291,6 +289,43 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
         return HttpApiResponse.<Boolean>builder()
                 .success(true)
                 .status(201)
+                .message("ok")
+                .data(true)
+                .build();
+    }
+
+
+    @Override
+    @Transactional
+    public HttpApiResponse<Boolean> createTimeTable(TimeTableRequest request) {
+        Long universityId = userSession.universityId();
+        Long groupId = request.getGroupId();
+        Long courseId = request.getCourseId();
+        Long teacherId = request.getTeacherId();
+
+        Group group = groupRepository.findByIdAndOrganizationId(groupId, universityId)
+                .orElseThrow(() -> new EntityNotFoundException("group.not.found"));
+
+        Course course = courseRepository.findByIdAndOrganisationId(courseId, universityId)
+                .orElseThrow(() -> new EntityNotFoundException("course.not.found"));
+
+        TeacherProfile profile = teacherProfileRepository.findByIdAndOrganizationIdAndDeletedAtIsNull(teacherId, universityId)
+                .orElseThrow(() -> new EntityNotFoundException("teacher.not.found"));
+
+        TimeTable timeTable = TimeTable.builder()
+                .group(group)
+                .course(course)
+                .teacher(profile)
+                .endTime(request.getEndTime())
+                .organizationId(universityId)
+                .dayOfWeek(request.getDayOfWeek())
+                .startTime(request.getStartTime())
+                .build();
+        timeTableRepository.save(timeTable);
+
+        return HttpApiResponse.<Boolean>builder()
+                .success(true)
+                .status(200)
                 .message("ok")
                 .data(true)
                 .build();

@@ -2,7 +2,6 @@ package com.company.student.app.service.impl;
 
 import com.company.student.app.config.security.TenantContext;
 import com.company.student.app.config.security.UserSession;
-import com.company.student.app.config.storage.MinioService;
 import com.company.student.app.dto.*;
 import com.company.student.app.model.*;
 import com.company.student.app.repository.*;
@@ -17,9 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -39,10 +36,11 @@ public class StudentProfileServiceImpl implements StudentProfileService {
     private final TimeTableMapper timeTableMapper;
     private final AuthUserRepository authUserRepository;
     private final PasswordEncoder passwordEncoder;
-    private final MinioService minioService;
     private final GroupRepository groupRepository;
     private final GroupMapper groupMapper;
     private final UniversityUserRoleRepository userRoleRepository;
+    private final TeacherProfileRepository teacherProfileRepository;
+    private final TeacherProfileMapper teacherProfileMapper;
 
     @Override
     public HttpApiResponse<UserMeResponse> getMe(Authentication authentication) {
@@ -133,11 +131,45 @@ public class StudentProfileServiceImpl implements StudentProfileService {
 
     @Override
     @Transactional(readOnly = true)
-    public HttpApiResponse<List<TimeTableResponse>> getTimeTableByGroupId(Long groupId) {
-        List<TimeTable> timeTables =
-                timeTableRepository.findAllByGroupIdAndOrganizationIdAndDeletedAtIsNull(groupId, userSession.universityId());
+    public HttpApiResponse<List<TeacherResponse>> getAllTeacher() {
+        Long universityId = userSession.universityId();
+        List<TeacherProfile> teacherProfileList = teacherProfileRepository.findAllByOrganizationIdAndDeletedAtIsNull(universityId);
 
-        List<TimeTableResponse> responseList = timeTableMapper.mapToResponseList(timeTables);
+        return HttpApiResponse.<List<TeacherResponse>>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(teacherProfileList.stream().map(teacherProfileMapper::mapToTeacherResponse).toList())
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public HttpApiResponse<List<TimeTableResponse>> getTimeTable(Long teacherId, Long groupId) {
+        Long universityId = userSession.universityId();
+
+        if (teacherId == null && groupId == null) {
+            throw new IllegalArgumentException("teacherId yoki groupId berilishi kerak");
+        }
+
+        if (teacherId != null && groupId != null) {
+            throw new IllegalArgumentException("Faqat bittasi berilishi mumkin: teacherId yoki groupId");
+        }
+
+        List<TimeTable> timeTables;
+
+        if (teacherId != null) {
+            timeTables = timeTableRepository
+                    .findAllByOrganizationIdAndTeacherIdAndDeletedAtIsNull(
+                            universityId, teacherId);
+        } else {
+            timeTables = timeTableRepository
+                    .findAllByOrganizationIdAndGroupIdAndDeletedAtIsNull(
+                            universityId, groupId);
+        }
+
+        List<TimeTableResponse> responseList =
+                timeTableMapper.mapToResponseList(timeTables);
 
         return HttpApiResponse.<List<TimeTableResponse>>builder()
                 .success(true)

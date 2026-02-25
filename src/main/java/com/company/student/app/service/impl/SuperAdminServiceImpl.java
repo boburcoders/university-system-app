@@ -2,13 +2,11 @@ package com.company.student.app.service.impl;
 
 import com.company.student.app.config.security.TenantContext;
 import com.company.student.app.config.security.UserSession;
-import com.company.student.app.config.storage.MinioService;
 import com.company.student.app.dto.*;
 import com.company.student.app.model.*;
 import com.company.student.app.model.enums.UniversityRole;
 import com.company.student.app.repository.*;
 import com.company.student.app.service.SuperAdminService;
-import com.company.student.app.service.mapper.AuthUserMapper;
 import com.company.student.app.service.mapper.SuperAdminMapper;
 import com.company.student.app.service.mapper.UniversityAdminMapper;
 import com.company.student.app.service.mapper.UniversityMapper;
@@ -21,7 +19,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 
@@ -35,11 +32,9 @@ public class SuperAdminServiceImpl implements SuperAdminService {
     private final UniversityUserRoleRepository universityUserRoleRepository;
     private final SuperAdminMapper superAdminMapper;
     private final UniversityAdminMapper universityAdminMapper;
-    private final AuthUserMapper authUserMapper;
     private final UniversityMapper universityMapper;
     private final UserSession userSession;
     private final PasswordEncoder passwordEncoder;
-    private final MinioService minioService;
     private final UniversityUserRoleRepository userRoleRepository;
     private final DepartmentRepository departmentRepository;
     private final FacultyRepository facultyRepository;
@@ -158,7 +153,6 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                 .orElseThrow(() -> new EntityNotFoundException("entity.not.found"));
         LocalDateTime now = LocalDateTime.now();
 
-        // 🔥 ORDER muhim (child → parent)
         lessonMaterialRepository.softDeleteByUniversity(universityId, now);
         lessonRepository.softDeleteByUniversity(universityId, now);
         courseRepository.softDeleteByUniversity(universityId, now);

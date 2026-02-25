@@ -20,46 +20,52 @@ import org.springframework.web.multipart.MultipartFile;
 public class UniversityAdminController {
     private final UniversityAdminService universityAdminService;
 
-    @PostMapping("/add-teacher")
+    @PostMapping("/teacher")
     public ResponseEntity<HttpApiResponse<Long>> createTeacher(@RequestBody @Valid TeacherCreateRequest request) {
         HttpApiResponse<Long> response = universityAdminService.createTeacher(request);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @PostMapping("/add-student")
+    @PostMapping("/student")
     public ResponseEntity<HttpApiResponse<Long>> createStudent(@RequestBody @Valid StudentCreateRequest request) {
         HttpApiResponse<Long> response = universityAdminService.createStudent(request);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @PostMapping(value = "/add-student-by-excel")
+    @PostMapping(value = "/student-by-excel")
     public ResponseEntity<HttpApiResponse<Boolean>> createStudentByExcelFile(@RequestParam MultipartFile file) {
         HttpApiResponse<Boolean> response = universityAdminService.createStudentByExcelFile(file);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @PostMapping(value = "/create-faculty/{department_id}")
+    @PostMapping(value = "/faculty/{department_id}")
     public ResponseEntity<HttpApiResponse<Boolean>> createFaculty(@PathVariable Long department_id, @RequestBody FacultyRequestDto requestDto) {
         HttpApiResponse<Boolean> response = universityAdminService.createFaculty(department_id, requestDto);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @PostMapping(value = "/create-department")
+    @PostMapping(value = "/department")
     public ResponseEntity<HttpApiResponse<Boolean>> createDepartment(@RequestBody @Valid DepartmentRequestDto requestDto) {
         HttpApiResponse<Boolean> response = universityAdminService.createDepartment(requestDto);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
 
-    @PostMapping(value = "/create-course/{faculty_id}")
+    @PostMapping(value = "/course/{faculty_id}")
     public ResponseEntity<HttpApiResponse<Boolean>> createCourse(@PathVariable Long faculty_id, @RequestBody @Valid CourseRequestDto requestDto) {
         HttpApiResponse<Boolean> response = universityAdminService.createCourse(faculty_id, requestDto);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @PostMapping(value = "/create-group/{faculty_id}")
+    @PostMapping(value = "/group/{faculty_id}")
     public ResponseEntity<HttpApiResponse<Boolean>> createGroup(@PathVariable Long faculty_id, @RequestBody @Valid GroupRequestDto requestDto) {
         HttpApiResponse<Boolean> response = universityAdminService.createGroup(faculty_id, requestDto);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @PostMapping(value = "/time-table")
+    public ResponseEntity<HttpApiResponse<Boolean>> createTimeTable(@RequestBody @Valid TimeTableRequest request) {
+        HttpApiResponse<Boolean> response = universityAdminService.createTimeTable(request);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
@@ -82,7 +88,7 @@ public class UniversityAdminController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @GetMapping("/get-all-teacher")
+    @GetMapping("/all-teacher")
     public ResponseEntity<HttpApiResponse<Page<TeacherShortResponseDto>>> getAllTeacherInUniversity(
             @RequestParam(required = false, defaultValue = "0") Integer pageNumber,
             @RequestParam(required = false, defaultValue = "10") Integer sizeNumber
@@ -92,7 +98,7 @@ public class UniversityAdminController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @GetMapping("/get-all-student")
+    @GetMapping("/all-student")
     public ResponseEntity<HttpApiResponse<Page<StudentShortResponse>>> getAllStudentInUniversity(
             @RequestParam(required = false, defaultValue = "0") Integer pageNumber,
             @RequestParam(required = false, defaultValue = "10") Integer sizeNumber
@@ -102,7 +108,7 @@ public class UniversityAdminController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @GetMapping("/get-all-course")
+    @GetMapping("/all-course")
     public ResponseEntity<HttpApiResponse<Page<CourseResponseDto>>> getAllCourseInUniversity(
             @RequestParam(required = false, defaultValue = "0") Integer pageNumber,
             @RequestParam(required = false, defaultValue = "10") Integer sizeNumber
@@ -112,7 +118,7 @@ public class UniversityAdminController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @GetMapping("/get-all-groups")
+    @GetMapping("/all-groups")
     public ResponseEntity<HttpApiResponse<Page<GroupResponse>>> getAllGroupsInUniversity(
             @RequestParam(required = false, defaultValue = "0") Integer pageNumber,
             @RequestParam(required = false, defaultValue = "10") Integer sizeNumber
@@ -122,7 +128,7 @@ public class UniversityAdminController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @GetMapping("/get-all-faculty")
+    @GetMapping("/all-faculty")
     public ResponseEntity<HttpApiResponse<Page<FacultyResponse>>> getAllFacultyInUniversity(
             @RequestParam(required = false, defaultValue = "0") Integer pageNumber,
             @RequestParam(required = false, defaultValue = "10") Integer sizeNumber
@@ -132,7 +138,7 @@ public class UniversityAdminController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @GetMapping("/get-all-department")
+    @GetMapping("/all-department")
     public ResponseEntity<HttpApiResponse<Page<DepartmentResponse>>> getAllDepartmentInUniversity(
             @RequestParam(required = false, defaultValue = "0") Integer pageNumber,
             @RequestParam(required = false, defaultValue = "10") Integer sizeNumber
@@ -142,13 +148,13 @@ public class UniversityAdminController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @PutMapping("/update-university")
+    @PutMapping("/university")
     public ResponseEntity<HttpApiResponse<Boolean>> updateUniversity(@RequestBody UniversityUpdateRequest request) {
         HttpApiResponse<Boolean> response = universityAdminService.updateUniversity(request);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @PutMapping("/update-department/{departmentId}")
+    @PutMapping("/department/{departmentId}")
     public ResponseEntity<HttpApiResponse<Boolean>> updateDepartment(
             @RequestBody DepartmentUpdateRequest request,
             @PathVariable Long departmentId) {
@@ -156,21 +162,21 @@ public class UniversityAdminController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @PutMapping("/update-faculty/{facultyId}")
+    @PutMapping("/faculty/{facultyId}")
     public ResponseEntity<HttpApiResponse<Boolean>> updateFaculty(@RequestBody FacultyUpdateRequest request, @PathVariable Long facultyId) {
         HttpApiResponse<Boolean> response = universityAdminService.updateFaculty(request, facultyId);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
 
-    @PutMapping("/update-profile")
+    @PutMapping("/profile")
     public ResponseEntity<HttpApiResponse<Boolean>> updateProfile(@RequestBody UniversityAdminUpdateRequest request) {
         HttpApiResponse<Boolean> response = universityAdminService.updateProfile(request);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
 
-    @PutMapping("/update-password")
+    @PutMapping("/password")
     public ResponseEntity<HttpApiResponse<Boolean>> updatePassword(
             @RequestParam String oldPassword,
             @RequestParam String newPassword

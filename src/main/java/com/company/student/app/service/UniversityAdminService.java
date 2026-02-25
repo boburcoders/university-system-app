@@ -64,4 +64,6 @@ public interface UniversityAdminService {
     HttpApiResponse<StatisticResponse> getStatisticsDashboard();
 
     HttpApiResponse<Boolean> removeGroup(Long groupId);
+
+    HttpApiResponse<Boolean> createTimeTable(@Valid TimeTableRequest request);
 }

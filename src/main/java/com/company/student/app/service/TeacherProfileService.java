@@ -15,7 +15,7 @@ import java.util.List;
 public interface TeacherProfileService {
     HttpApiResponse<TeacherProfileResponse> getTeacherProfile();
 
-    HttpApiResponse<List<TimeTableResponse>> getTimeTable(LocalDate startDate, LocalDate endDate, DayOfWeek day);
+    HttpApiResponse<List<TimeTableResponse>> getTimeTable(Long teacherId, Long groupId);
 
     HttpApiResponse<Boolean> createLesson(LessonCreateRequest request);
 

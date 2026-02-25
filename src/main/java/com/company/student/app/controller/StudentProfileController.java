@@ -74,11 +74,18 @@ public class StudentProfileController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @GetMapping("/get-time-table/{groupId}")
-    public ResponseEntity<HttpApiResponse<List<TimeTableResponse>>> getTimeTableByGroupId(
-            @PathVariable Long groupId
+    @GetMapping("/get-all-teacher")
+    public ResponseEntity<HttpApiResponse<List<TeacherResponse>>> getAllTeacher() {
+        HttpApiResponse<List<TeacherResponse>> response = profileService.getAllTeacher();
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @GetMapping("/get-time-table")
+    public ResponseEntity<HttpApiResponse<List<TimeTableResponse>>> getTimeTable(
+            @RequestParam(required = false) Long teacherId,
+            @RequestParam(required = false) Long groupId
     ) {
-        HttpApiResponse<List<TimeTableResponse>> response = profileService.getTimeTableByGroupId(groupId);
+        HttpApiResponse<List<TimeTableResponse>> response = profileService.getTimeTable(teacherId, groupId);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 

@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -42,4 +43,6 @@ public interface TeacherProfileRepository extends JpaRepository<TeacherProfile, 
              where tp.organizationId=:universityId and tp.deletedAt is null
             """)
     void softDeleteByUniversity(Long universityId, LocalDateTime now);
+
+    List<TeacherProfile> findAllByOrganizationIdAndDeletedAtIsNull(Long organizationId);
 }
