@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url:
-    username:
-    password:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     properties:
@@ -10,16 +10,24 @@ spring:
         show_sql: true
     hibernate:
       ddl-auto: update
+server:
+  port: 8001
 
 security:
   jwt:
-    secret-key: "ZridVCrtqhCWNa1sfOEEAKrreshnNNfQ31VmVpBQT9u7+V1/qYETw/GMksOlhwvk2KeT/3jpg8aYJvTlba4gIjvna2og+3FdOHpQmXOVzDx2n4oIB+mQ9kj/kxiwLP80P/PUaymTD+szhgAG2N7AZZP/A9iSoRxCK6aX3Dmsg5M="
+    secret-key: ${JWT_SECRET}
     access-token-expiration: 3600000
     refresh-token-expiration: 604800000
     issuer: "https://student.system.uz"
+minio:
+  url: ${MINIO_URL}
+  access-key: ${MINIO_USERNAME}
+  secret-key: ${MINIO_PASSWORD}
+  bucket: ${MINIO_BUCKET}
 
+#    prod da false bolish kk test uchun true
 springdoc:
   swagger-ui:
-    enabled: false
+    enabled: true
   api-docs:
-    enabled: false
+    enabled: true

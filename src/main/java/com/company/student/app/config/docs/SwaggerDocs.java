@@ -34,7 +34,10 @@ public class SwaggerDocs {
                 .servers(List.of(
                         new Server()
                                 .url("http://localhost:8080")
-                                .description("Local Server")
+                                .description("Local Server"),
+                        new Server()
+                                .url("http://localhost:8001")
+                                .description("Test Server")
                 ))
                 .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
                 .components(new Components()
