@@ -17,6 +17,7 @@ import java.util.List;
 @Configuration
 public class SwaggerDocs {
 
+
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
@@ -33,7 +34,10 @@ public class SwaggerDocs {
                 .servers(List.of(
                         new Server()
                                 .url("http://localhost:8080")
-                                .description("Local Server")
+                                .description("Local Server"),
+                        new Server()
+                                .url("http://localhost:8001")
+                                .description("Test Server")
                 ))
                 .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
                 .components(new Components()
@@ -70,6 +74,14 @@ public class SwaggerDocs {
                 GroupedOpenApi.builder()
                         .group("auth")
                         .pathsToMatch("/api/auth/**")
+                        .build(),
+                GroupedOpenApi.builder()
+                        .group("file")
+                        .pathsToMatch("/api/file/**")
+                        .build(),
+                GroupedOpenApi.builder()
+                        .group("address")
+                        .pathsToMatch("/api/address/**")
                         .build()
         );
     }

@@ -25,14 +25,13 @@ public class CorsConfig {
 
         // Ruxsat etilgan metodlar
         configuration.setAllowedMethods(Arrays.asList(
-                "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
+                "GET", "POST", "PUT", "DELETE"
         ));
 
         // 🔥 MUHIM QATORLAR
         configuration.setAllowedHeaders(List.of(
                 "Authorization",
-                "Content-Type",
-                "TENANT"
+                "Content-Type"
         ));
 
         configuration.setExposedHeaders(List.of(

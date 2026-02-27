@@ -12,6 +12,4 @@ public class AddressResponseDto {
     private String region;
     private String street;
     private int apartmentNumber;
-    private String latitude;
-    private String longitude;
 }

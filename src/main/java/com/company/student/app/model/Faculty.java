@@ -11,14 +11,14 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-public class Faculty extends MultiTenantEntity{
-    @Column(nullable = false)
+public class Faculty extends MultiTenantEntity {
+    @Column(nullable = false, unique = true)
     private String name;
 
     @Column(nullable = false)
     private Integer durationYear;
 
-    private String logoUrl;
+    private String logoName;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

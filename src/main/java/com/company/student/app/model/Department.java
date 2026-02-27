@@ -14,7 +14,7 @@ public class Department extends MultiTenantEntity {
     @Column(nullable = false, unique = true)
     private String name;
 
-    private String logoUrl;
+    private String logoName;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "university_id")

@@ -22,11 +22,6 @@ public class AuthController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @GetMapping("/me")
-    public ResponseEntity<HttpApiResponse<UserMeResponse>> getCurrentUser(Authentication authentication) {
-        HttpApiResponse<UserMeResponse> response = authService.getCurrentUser(authentication);
-        return ResponseEntity.status(response.getStatus()).body(response);
-    }
 
     @GetMapping("/get-universities")
     public ResponseEntity<HttpApiResponse<List<UniversityShortResponse>>> getUniversitiesShortInfo() {

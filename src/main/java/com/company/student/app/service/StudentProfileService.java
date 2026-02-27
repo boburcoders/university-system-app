@@ -4,6 +4,7 @@ import com.company.student.app.dto.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,7 +18,7 @@ public interface StudentProfileService {
 
     HttpApiResponse<Page<CourseResponseDto>> getStudentCourses(Pageable pageable);
 
-    HttpApiResponse<Page<AttendanceResponse>> getStudentAttendances(Pageable pageable, LocalDate startDate, LocalDate endDate);
+    HttpApiResponse<Page<AttendanceResponse>> getStudentAttendances(Pageable pageable, Long lessonId, Long courseId);
 
     HttpApiResponse<Boolean> updateProfile(StudentProfileUpdateRequest request);
 
@@ -25,7 +26,13 @@ public interface StudentProfileService {
 
     HttpApiResponse<Page<LessonResponse>> getCourseLessons(Pageable of, Long courseId);
 
-    HttpApiResponse<List<TimeTableResponse>> getTimeTableByGroupId(Long groupId);
+    HttpApiResponse<List<TimeTableResponse>> getTimeTable(Long teacherId, Long groupId);
 
-    HttpApiResponse<Boolean> uploadProfileImage(MultipartFile file);
+    HttpApiResponse<List<GroupShortResponse>> getAllGroupShortResponse();
+
+    HttpApiResponse<UserMeResponse> getMe(Authentication authentication);
+
+    HttpApiResponse<List<TeacherResponse>> getAllTeacher();
+
+    HttpApiResponse<List<LessonMaterialResponse>> getLessonMaterials(Long lessonId);
 }

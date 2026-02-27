@@ -11,9 +11,12 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public abstract class TimeTableMapper {
 
-    @Mapping(target = "courseCode",source = "table.course.code")
-    @Mapping(target = "day",source = "table.dayOfWeek")
-    @Mapping(target = "groupName",source = "table.group.name")
+    @Mapping(target = "courseCode", source = "table.course.code")
+    @Mapping(target = "day", source = "table.dayOfWeek")
+    @Mapping(target = "groupName", source = "table.group.name")
+    @Mapping(target = "roomNumber", source = "table.room.number")
+    @Mapping(target = "teacherFullName",
+            expression = "java(table.getTeacher().getFirstName() + \" \" + table.getTeacher().getLastName())")
     public abstract TimeTableResponse mapToResponseDto(TimeTable table);
 
 

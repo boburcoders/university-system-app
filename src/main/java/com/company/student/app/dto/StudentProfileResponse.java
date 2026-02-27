@@ -14,7 +14,7 @@ public class StudentProfileResponse {
     private String studentNumber;
     private String phoneNumber;
     private String email;
-    private String avatarUrl;
+    private String logoName;
     private String username;
     private AddressResponseDto address;
     private GroupResponse group;

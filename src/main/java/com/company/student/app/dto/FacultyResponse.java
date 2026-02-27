@@ -11,9 +11,10 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class FacultyResponse {
+    private Long id;
     private String name;
     private Integer durationYear;
-    private String logoUrl;
+    private String logoName;
     private DegreeType degreeType;
     private String departmentName;
 }

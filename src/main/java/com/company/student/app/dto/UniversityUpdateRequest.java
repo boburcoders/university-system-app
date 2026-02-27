@@ -11,6 +11,6 @@ public class UniversityUpdateRequest {
     private String name;
     private String code;
     private String description;
-    private String logoUrl;
+    private String logoName;
 }
 

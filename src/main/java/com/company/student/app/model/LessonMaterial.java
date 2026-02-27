@@ -1,14 +1,14 @@
 package com.company.student.app.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Getter
@@ -25,8 +25,6 @@ public class LessonMaterial extends MultiTenantEntity {
     @JoinColumn(name = "lesson_id", nullable = false)
     private Lesson lesson;
 
-    private String fileName;
-    private String fileUrl;
-    private String fileType;
-    private Long size;
+    @ElementCollection
+    private List<String> fileName = new ArrayList<>();
 }

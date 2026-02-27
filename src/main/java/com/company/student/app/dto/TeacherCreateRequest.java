@@ -10,14 +10,10 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class TeacherCreateRequest {
-    @NotNull
     @NotBlank
     private String email;
-
-    @NotNull
     @NotBlank
     private String password;
-    @NotNull
     @NotBlank
     private String phoneNumber;
 }

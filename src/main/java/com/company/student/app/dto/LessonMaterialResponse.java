@@ -2,6 +2,8 @@ package com.company.student.app.dto;
 
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -11,8 +13,7 @@ public class LessonMaterialResponse {
     private Long id;
     private String title;
     private String description;
-    private String fileUrl;
-    private Long size;
+    private List<String> fileName;
 
 
 }

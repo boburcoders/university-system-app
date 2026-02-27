@@ -7,6 +7,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,8 +19,15 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/student-profile")
+@PreAuthorize("hasRole('STUDENT')")
 public class StudentProfileController {
     private final StudentProfileService profileService;
+
+    @GetMapping("/me")
+    public ResponseEntity<HttpApiResponse<UserMeResponse>> getCurrentUser(Authentication authentication) {
+        HttpApiResponse<UserMeResponse> response = profileService.getMe(authentication);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
 
     @GetMapping("/profile")
     public ResponseEntity<HttpApiResponse<StudentProfileResponse>> getProfile() {
@@ -26,7 +35,7 @@ public class StudentProfileController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @GetMapping("/get-course-lessons/{course_id}")
+    @GetMapping("/lessons-by-course/{course_id}")
     public ResponseEntity<HttpApiResponse<Page<LessonResponse>>> getCourseLessons(
             @PathVariable Long course_id,
             @RequestParam(required = false, defaultValue = "0") Integer pageNumber,
@@ -34,6 +43,15 @@ public class StudentProfileController {
     ) {
         HttpApiResponse<Page<LessonResponse>> response
                 = profileService.getCourseLessons(PageRequest.of(pageNumber, sizeNumber), course_id);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @GetMapping("/lessons-materials/{lesson_id}")
+    public ResponseEntity<HttpApiResponse<List<LessonMaterialResponse>>> getLessonMaterials(
+            @PathVariable Long lesson_id
+    ) {
+        HttpApiResponse<List<LessonMaterialResponse>> response
+                = profileService.getLessonMaterials(lesson_id);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
@@ -51,27 +69,35 @@ public class StudentProfileController {
     public ResponseEntity<HttpApiResponse<Page<AttendanceResponse>>> getStudentAttendances(
             @RequestParam(required = false, defaultValue = "0") Integer page,
             @RequestParam(required = false, defaultValue = "10") Integer size,
-            @RequestParam LocalDate startDate,
-            @RequestParam LocalDate endDate
+            @RequestParam(required = false) Long lessonId,
+            @RequestParam(required = false) Long courseId
     ) {
         HttpApiResponse<Page<AttendanceResponse>> response
-                = profileService.getStudentAttendances(PageRequest.of(page, size), startDate, endDate);
+                = profileService.getStudentAttendances(PageRequest.of(page, size), lessonId, courseId);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @GetMapping("/get-time-table/{groupId}")
-    public ResponseEntity<HttpApiResponse<List<TimeTableResponse>>> getTimeTableByGroupId(
-            @PathVariable Long groupId
+    @GetMapping("/get-all-group")
+    public ResponseEntity<HttpApiResponse<List<GroupShortResponse>>> getAllGroup() {
+        HttpApiResponse<List<GroupShortResponse>> response = profileService.getAllGroupShortResponse();
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @GetMapping("/get-all-teacher")
+    public ResponseEntity<HttpApiResponse<List<TeacherResponse>>> getAllTeacher() {
+        HttpApiResponse<List<TeacherResponse>> response = profileService.getAllTeacher();
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @GetMapping("/get-time-table")
+    public ResponseEntity<HttpApiResponse<List<TimeTableResponse>>> getTimeTable(
+            @RequestParam(required = false) Long teacherId,
+            @RequestParam(required = false) Long groupId
     ) {
-        HttpApiResponse<List<TimeTableResponse>> response = profileService.getTimeTableByGroupId(groupId);
+        HttpApiResponse<List<TimeTableResponse>> response = profileService.getTimeTable(teacherId, groupId);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @PostMapping(value = "/upload-profile-image",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<HttpApiResponse<Boolean>> uploadProfileImage(@RequestParam MultipartFile file) {
-        HttpApiResponse<Boolean> response = profileService.uploadProfileImage(file);
-        return ResponseEntity.status(response.getStatus()).body(response);
-    }
 
     @PutMapping("/update-profile")
     public ResponseEntity<HttpApiResponse<Boolean>> updateProfile(@RequestBody StudentProfileUpdateRequest request) {

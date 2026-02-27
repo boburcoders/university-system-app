@@ -17,7 +17,4 @@ public class Address extends MultiTenantEntity {
     private String region;
     private String street;
     private int apartmentNumber;
-
-    private String latitude;
-    private String longitude;
 }

@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class LessonResponse {
+    private Long id;
     private String title;
     private String description;
 

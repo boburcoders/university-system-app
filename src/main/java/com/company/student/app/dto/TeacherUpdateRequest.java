@@ -1,6 +1,5 @@
 package com.company.student.app.dto;
 
-import jakarta.persistence.Column;
 import lombok.*;
 
 @Getter
@@ -15,6 +14,6 @@ public class TeacherUpdateRequest {
     private String description;
     private String phoneNumber;
     private String username;
-    private AddressDto addressDto;
+    private String logoName;
 
 }

@@ -7,6 +7,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,9 +19,16 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/teacher-profile")
+@PreAuthorize("hasRole('TEACHER')")
 public class TeacherProfileController {
     private final TeacherProfileService teacherProfileService;
 
+
+    @GetMapping("/me")
+    public ResponseEntity<HttpApiResponse<UserMeResponse>> getCurrentUser(Authentication authentication) {
+        HttpApiResponse<UserMeResponse> response = teacherProfileService.getMe(authentication);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
 
     @GetMapping("/get-profile")
     public ResponseEntity<HttpApiResponse<TeacherProfileResponse>> getTeacherProfile() {
@@ -29,11 +38,10 @@ public class TeacherProfileController {
 
     @GetMapping("/get-time-table")
     public ResponseEntity<HttpApiResponse<List<TimeTableResponse>>> getTimeTable(
-            @RequestParam(required = false) LocalDate startDate,
-            @RequestParam(required = false) LocalDate endDate,
-            @RequestParam(required = false) DayOfWeek day
+            @RequestParam(required = false) Long teacherId,
+            @RequestParam(required = false) Long groupId
     ) {
-        HttpApiResponse<List<TimeTableResponse>> response = teacherProfileService.getTimeTable(startDate, endDate, day);
+        HttpApiResponse<List<TimeTableResponse>> response = teacherProfileService.getTimeTable(teacherId, groupId);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
@@ -43,12 +51,12 @@ public class TeacherProfileController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @PostMapping("/create-lesson-materails/{lesson_id}")
+    @PostMapping(value = "/create-lesson-materails/{lesson_id}")
     public ResponseEntity<HttpApiResponse<Boolean>> createLessonMaterials(
             @PathVariable Long lesson_id,
             @RequestBody LessonMaterialRequest request,
-            @RequestParam List<MultipartFile> files) throws Exception {
-        HttpApiResponse<Boolean> response = teacherProfileService.createLessonMaterials(lesson_id, request, files);
+            @RequestParam List<String> fileNames) {
+        HttpApiResponse<Boolean> response = teacherProfileService.createLessonMaterials(lesson_id, request, fileNames);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
@@ -73,7 +81,7 @@ public class TeacherProfileController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @GetMapping("/get-lessons-materials/{lesson_id}")
+    @GetMapping("/lessons-materials/{lesson_id}")
     public ResponseEntity<HttpApiResponse<List<LessonMaterialResponse>>> getLessonMaterials(
             @PathVariable Long lesson_id
     ) {
@@ -110,13 +118,6 @@ public class TeacherProfileController {
         HttpApiResponse<Boolean> response = teacherProfileService.createAttendance(lesson_id, dto);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
-
-    @PostMapping(value = "/upload-profile-image",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<HttpApiResponse<Boolean>> uploadProfileImage(@RequestParam MultipartFile file) {
-        HttpApiResponse<Boolean> response = teacherProfileService.uploadProfileImage(file);
-        return ResponseEntity.status(response.getStatus()).body(response);
-    }
-
 
 
     @PutMapping("/update-profile")

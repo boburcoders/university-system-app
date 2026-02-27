@@ -7,7 +7,6 @@ import org.mapstruct.*;
 
 @Mapper(componentModel = "spring")
 public abstract class SuperAdminMapper {
-    @Mapping(target = "role", ignore = true)
     @Mapping(target = "username", source = "profile.user.username")
     public abstract SuperAdminResponse mapToSuperAdminResponse(SystemAdminProfile profile);
 

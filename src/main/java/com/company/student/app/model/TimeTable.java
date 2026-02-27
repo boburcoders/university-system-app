@@ -26,6 +26,9 @@ public class TimeTable extends MultiTenantEntity {
     @ManyToOne(optional = false)
     private TeacherProfile teacher;
 
+    @ManyToOne(optional = false)
+    private Room room;
+
     @Enumerated(EnumType.STRING)
     private DayOfWeek dayOfWeek;
 

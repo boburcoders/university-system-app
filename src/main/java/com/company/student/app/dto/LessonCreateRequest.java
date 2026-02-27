@@ -16,14 +16,6 @@ public class LessonCreateRequest {
 
     @NotBlank
     private String description;
-    @NotBlank
-    private LocalDateTime startDateTime;
-
-    @NotBlank
-    private LocalDateTime endDateTime;
-
-    @NotBlank
-    private Long groupId;
 
     @NotBlank
     private Long courseId;

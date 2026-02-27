@@ -15,5 +15,5 @@ public class TeacherShortResponseDto {
     private String description;
     private String email;
     private String phoneNumber;
-    private String avatarUrl;
+    private String logoName;
 }

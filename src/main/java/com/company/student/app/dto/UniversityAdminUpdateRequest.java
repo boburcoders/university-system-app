@@ -12,6 +12,6 @@ public class UniversityAdminUpdateRequest {
     private String lastName;
     private String middleName;
     private String phoneNumber;
-    private String email;
+    private String logoName;
 
 }

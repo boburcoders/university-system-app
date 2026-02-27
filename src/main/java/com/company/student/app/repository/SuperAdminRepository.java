@@ -9,8 +9,6 @@ import java.util.Optional;
 
 @Repository
 public interface SuperAdminRepository extends JpaRepository<SystemAdminProfile, Long> {
-    @Query("select sya from SystemAdminProfile sya where sya.user.id=:userId and sya.organizationId=:organizationId and sya.deletedAt is null ")
-    Optional<SystemAdminProfile> findByIdAndDeletedAtIsNull(Long userId, Long organizationId);
 
     boolean existsSystemAdminProfileByEmailAndOrganizationId(String email, Long organizationId);
 

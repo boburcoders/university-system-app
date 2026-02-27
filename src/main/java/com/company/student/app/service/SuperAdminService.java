@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,5 +27,5 @@ public interface SuperAdminService {
 
     HttpApiResponse<Boolean> updateProfile(SystemAdminUpdateRequest request);
 
-    HttpApiResponse<Boolean> uploadProfileImage(MultipartFile file);
+    HttpApiResponse<UserMeResponse> getMe(Authentication authentication);
 }
