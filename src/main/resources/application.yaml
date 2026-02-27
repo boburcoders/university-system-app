@@ -2,5 +2,5 @@ spring:
   application:
     name: Student-Management-System
   profiles:
-    active: local
+    active: prod
 
