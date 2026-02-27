@@ -75,6 +75,10 @@ public class SwaggerDocs {
                 GroupedOpenApi.builder()
                         .group("file")
                         .pathsToMatch("/api/file/**")
+                        .build(),
+                GroupedOpenApi.builder()
+                        .group("address")
+                        .pathsToMatch("/api/address/**")
                         .build()
         );
     }

@@ -1,4 +1,4 @@
-package com.company.student.app.service.impl;
+package com.company.student.app.repository;
 
 import com.company.student.app.model.Attendance;
 import org.springframework.data.domain.Page;

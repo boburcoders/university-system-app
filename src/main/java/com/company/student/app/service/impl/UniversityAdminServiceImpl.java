@@ -48,6 +48,7 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
     private final LessonMaterialRepository lessonMaterialRepository;
     private final TimeTableRepository timeTableRepository;
     private final CourseAssignmentRepository courseAssignmentRepository;
+    private final AddressMapper addressMapper;
 
 
     @Override
@@ -78,14 +79,19 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
     @Override
     @Transactional(readOnly = true)
     public HttpApiResponse<UniversityAdminProfileResponse> getUniversityAdminProfile() {
-        UniversityAdminProfile adminProfile = universityAdminProfileRepository.findByUserIdAndDeletedIsNull(userSession.userId(), userSession.universityId())
-                .orElseThrow(() -> new EntityNotFoundException("user.not.found"));
+        UniversityAdminProfile adminProfile = getCurrentUniversityAdmin();
+        UniversityAdminProfileResponse response = universityAdminMapper.mapToProfileResponse(adminProfile);
+
+        Address address = adminProfile.getUser().getAddress();
+
+        if (address != null)
+            response.setAddressResponseDto(addressMapper.mapToResponse(address));
 
         return HttpApiResponse.<UniversityAdminProfileResponse>builder()
                 .success(true)
                 .status(200)
                 .message("ok")
-                .data(universityAdminMapper.mapToProfileResponse(adminProfile))
+                .data(response)
                 .build();
     }
 

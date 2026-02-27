@@ -33,8 +33,5 @@ public class TeacherProfile extends MultiTenantEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private AuthUser user;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "address_id")
-    private Address address;
 
 }

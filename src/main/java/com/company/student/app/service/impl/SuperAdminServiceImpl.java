@@ -7,6 +7,7 @@ import com.company.student.app.model.*;
 import com.company.student.app.model.enums.UniversityRole;
 import com.company.student.app.repository.*;
 import com.company.student.app.service.SuperAdminService;
+import com.company.student.app.service.mapper.AddressMapper;
 import com.company.student.app.service.mapper.SuperAdminMapper;
 import com.company.student.app.service.mapper.UniversityAdminMapper;
 import com.company.student.app.service.mapper.UniversityMapper;
@@ -46,6 +47,7 @@ public class SuperAdminServiceImpl implements SuperAdminService {
     private final GroupRepository groupRepository;
     private final CourseAssignmentRepository courseAssignmentRepository;
     private final TimeTableRepository timeTableRepository;
+    private final AddressMapper addressMapper;
 
     @Override
     @Transactional
@@ -114,6 +116,7 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
     @Override
     public HttpApiResponse<SuperAdminResponse> getProfile() {
 
@@ -121,6 +124,11 @@ public class SuperAdminServiceImpl implements SuperAdminService {
 
         SuperAdminResponse response =
                 superAdminMapper.mapToSuperAdminResponse(systemAdminProfile);
+
+        Address address = systemAdminProfile.getUser().getAddress();
+        if (address != null)
+            response.setAddressResponseDto(addressMapper.mapToResponse(address));
+
         response.setRole(UniversityRole.SUPER_ADMIN.name());
 
         return HttpApiResponse.<SuperAdminResponse>builder()

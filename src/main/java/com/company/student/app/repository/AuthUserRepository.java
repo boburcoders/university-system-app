@@ -32,4 +32,7 @@ public interface AuthUserRepository extends JpaRepository<AuthUser, Long> {
              where au.organizationId=:universityId and au.deletedAt is null
             """)
     void softDeleteByUniversity(Long universityId, LocalDateTime now);
+
+    @Query("select a from AuthUser a where a.id=:userId and a.organizationId=:universityId and a.deletedAt is null ")
+    AuthUser findByIdAndOrganizationIdAndDeletedAtIsNull(Long userId, Long universityId);
 }

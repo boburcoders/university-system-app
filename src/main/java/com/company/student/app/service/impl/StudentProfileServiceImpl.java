@@ -18,7 +18,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Component
@@ -46,6 +45,7 @@ public class StudentProfileServiceImpl implements StudentProfileService {
     private final LessonMaterialMapper lessonMaterialMapper;
     private final AttendanceRepository attendanceRepository;
     private final AttendanceMapper attendanceMapper;
+    private final AddressMapper addressMapper;
 
     @Override
     public HttpApiResponse<UserMeResponse> getMe(Authentication authentication) {
@@ -77,15 +77,20 @@ public class StudentProfileServiceImpl implements StudentProfileService {
                 orElseThrow(() -> new EntityNotFoundException("user.not.found"));
     }
 
+    @Transactional(readOnly = true)
     @Override
     public HttpApiResponse<StudentProfileResponse> getProfile() {
         StudentProfile profile = getCurrentStudent();
 
+        StudentProfileResponse response = studentProfileMapper.toProfileResponse(profile);
+        Address address = profile.getUser().getAddress();
+        if (address != null)
+            response.setAddress(addressMapper.mapToResponse(address));
         return HttpApiResponse.<StudentProfileResponse>builder()
                 .success(true)
                 .status(200)
                 .message("ok")
-                .data(studentProfileMapper.toProfileResponse(profile))
+                .data(response)
                 .build();
     }
 

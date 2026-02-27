@@ -44,6 +44,7 @@ public class TeacherProfileServiceImpl implements TeacherProfileService {
     private final LessonMaterialMapper lessonMaterialMapper;
     private final UniversityUserRoleRepository userRoleRepository;
     private final AttendanceRepository attendanceRepository;
+    private final AddressMapper addressMapper;
 
 
     @Override
@@ -73,12 +74,18 @@ public class TeacherProfileServiceImpl implements TeacherProfileService {
 
     @Override
     public HttpApiResponse<TeacherProfileResponse> getTeacherProfile() {
+        TeacherProfile currentTeacher = getCurrentTeacher();
+        TeacherProfileResponse response = teacherProfileMapper.mapToProfileResponse(currentTeacher);
+
+        Address address = currentTeacher.getUser().getAddress();
+        if (address != null)
+            response.setAddress(addressMapper.mapToResponse(address));
 
         return HttpApiResponse.<TeacherProfileResponse>builder()
                 .success(true)
                 .status(200)
                 .message("ok")
-                .data(teacherProfileMapper.mapToProfileResponse(getCurrentTeacher()))
+                .data(response)
                 .build();
     }
 

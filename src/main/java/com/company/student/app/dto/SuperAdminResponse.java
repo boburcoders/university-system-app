@@ -17,5 +17,6 @@ public class SuperAdminResponse {
     private String logoName;
     private String username;
     private String role;
+    private AddressResponseDto addressResponseDto;
 
 }

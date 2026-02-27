@@ -1,5 +1,7 @@
 package com.company.student.app.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Getter
@@ -7,9 +9,13 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class AddressResponseDto {
+public class AddressRequest {
+    @NotBlank
     private String city;
+    @NotBlank
     private String region;
+    @NotBlank
     private String street;
+    @NotNull
     private int apartmentNumber;
 }
