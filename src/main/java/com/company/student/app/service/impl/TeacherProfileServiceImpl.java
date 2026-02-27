@@ -11,12 +11,16 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -39,6 +43,7 @@ public class TeacherProfileServiceImpl implements TeacherProfileService {
     private final LessonMaterialRepository lessonMaterialRepository;
     private final LessonMaterialMapper lessonMaterialMapper;
     private final UniversityUserRoleRepository userRoleRepository;
+    private final AttendanceRepository attendanceRepository;
 
 
     @Override
@@ -121,10 +126,9 @@ public class TeacherProfileServiceImpl implements TeacherProfileService {
         Long universityId = userSession.universityId();
         TeacherProfile profile = getCurrentTeacher();
 
-        boolean exists = courseAssignmentRepository.existsByTeacherIdAndCourseIdAndGroupIdAndOrganizationId(
+        boolean exists = courseAssignmentRepository.existsByTeacherIdAndCourseIdAndOrganizationIdAndDeletedAtIsNull(
                 profile.getId(),
                 request.getCourseId(),
-                request.getGroupId(),
                 universityId
         );
         if (!exists)
@@ -154,30 +158,21 @@ public class TeacherProfileServiceImpl implements TeacherProfileService {
     public HttpApiResponse<Boolean> createLessonMaterials(Long lessonId, LessonMaterialRequest request, List<String> fileNames) {
         Lesson lesson = lessonRepository.findByIdAndOrganizationIdAndDeletedAtIsNull(lessonId, userSession.universityId())
                 .orElseThrow(() -> new EntityNotFoundException("lesson.not.found"));
-        try {
-            for (String fileName : fileNames) {
-                LessonMaterial lessonMaterial = LessonMaterial.builder()
-                        .title(request.getTitle())
-                        .description(request.getDescription())
-                        .fileName(fileName)
-                        .lesson(lesson)
-                        .build();
+        LessonMaterial lessonMaterial = LessonMaterial.builder()
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .fileName(fileNames)
+                .lesson(lesson)
+                .organizationId(userSession.universityId())
+                .build();
 
-                lessonMaterialRepository.save(lessonMaterial);
-            }
-            return HttpApiResponse.<Boolean>builder()
-                    .success(true)
-                    .status(201)
-                    .message("ok")
-                    .data(true)
-                    .build();
-        } catch (Exception e) {
-            return HttpApiResponse.<Boolean>builder()
-                    .success(false)
-                    .status(400)
-                    .message(e.getMessage())
-                    .build();
-        }
+        lessonMaterialRepository.save(lessonMaterial);
+        return HttpApiResponse.<Boolean>builder()
+                .success(true)
+                .status(201)
+                .message("ok")
+                .data(true)
+                .build();
     }
 
     @Override
@@ -266,10 +261,77 @@ public class TeacherProfileServiceImpl implements TeacherProfileService {
                 .build();
     }
 
+    @Transactional
     @Override
-    public HttpApiResponse<Boolean> createAttendance(Long lessonId, List<AttendanceRequestDto> dto) {
+    public HttpApiResponse<Boolean> createAttendance(Long lessonId, List<AttendanceRequestDto> dtoList) {
+        Long teacherId = getCurrentTeacher().getId();
 
-        return null;
+        List<Long> teacherGroupIds =
+                courseAssignmentRepository.findTeacherGroupIds(
+                        teacherId,
+                        userSession.universityId());
+
+        if (teacherGroupIds.isEmpty()) {
+            throw new AccessDeniedException("teacher.has.no.groups");
+        }
+
+        Lesson lesson = lessonRepository.findByIdAndOrganizationIdAndDeletedAtIsNull(lessonId, userSession.universityId())
+                .orElseThrow(() -> new EntityNotFoundException("lesson.not.found"));
+        List<Long> studentIds =
+                dtoList.stream().map(AttendanceRequestDto::getStudentId).toList();
+
+        List<StudentProfile> students =
+                studentProfileRepository.findAllByIdInAndOrganizationId(
+                        studentIds,
+                        userSession.universityId());
+
+        for (StudentProfile student : students) {
+            if (!teacherGroupIds.contains(student.getGroup().getId())) {
+                throw new AccessDeniedException(
+                        "teacher.cannot.mark.attendance.for.student: " + student.getId());
+            }
+        }
+
+        List<Attendance> existingList = attendanceRepository.
+                findAllByLessonIdAndOrganizationIdAndStudentIdIn(lessonId, userSession.universityId(), studentIds);
+        Map<Long, Attendance> existingMap = existingList.stream()
+                .collect(Collectors.toMap(a -> a.getStudent().getId(), a -> a));
+
+        List<Attendance> toSave = new ArrayList<>();
+
+        for (AttendanceRequestDto dto : dtoList) {
+            Attendance attendance = existingMap.get(dto.getStudentId());
+
+            if (attendance == null) {
+                // create
+                StudentProfile student = studentProfileRepository.findByIdAndOrganizationId(dto.getStudentId(), userSession.universityId())
+                        .orElseThrow(() -> new RuntimeException("Student not found: " + dto.getStudentId()));
+
+                attendance = Attendance.builder()
+                        .lesson(lesson)
+                        .student(student)
+                        .status(dto.getStatus())
+                        .startTime(dto.getStartTime())
+                        .endTime(dto.getEndTime())
+                        .note(dto.getNote())
+                        .organizationId(userSession.universityId())
+                        .build();
+            } else {
+                // update
+                attendance.setStatus(dto.getStatus());
+                attendance.setNote(dto.getNote());
+            }
+
+            toSave.add(attendance);
+        }
+
+        attendanceRepository.saveAll(toSave);
+        return HttpApiResponse.<Boolean>builder()
+                .success(true)
+                .status(201)
+                .message("ok")
+                .data(true)
+                .build();
     }
 
     @Override

@@ -81,7 +81,7 @@ public class TeacherProfileController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @GetMapping("/get-lessons-materials/{lesson_id}")
+    @GetMapping("/lessons-materials/{lesson_id}")
     public ResponseEntity<HttpApiResponse<List<LessonMaterialResponse>>> getLessonMaterials(
             @PathVariable Long lesson_id
     ) {

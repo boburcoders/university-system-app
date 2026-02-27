@@ -11,6 +11,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -41,6 +42,10 @@ public class StudentProfileServiceImpl implements StudentProfileService {
     private final UniversityUserRoleRepository userRoleRepository;
     private final TeacherProfileRepository teacherProfileRepository;
     private final TeacherProfileMapper teacherProfileMapper;
+    private final LessonMaterialRepository lessonMaterialRepository;
+    private final LessonMaterialMapper lessonMaterialMapper;
+    private final AttendanceRepository attendanceRepository;
+    private final AttendanceMapper attendanceMapper;
 
     @Override
     public HttpApiResponse<UserMeResponse> getMe(Authentication authentication) {
@@ -113,10 +118,73 @@ public class StudentProfileServiceImpl implements StudentProfileService {
     }
 
     @Override
-    public HttpApiResponse<Page<AttendanceResponse>> getStudentAttendances(Pageable pageable, LocalDate startDate, LocalDate endDate) {
-        return null;
+    @Transactional(readOnly = true)
+    public HttpApiResponse<List<LessonMaterialResponse>> getLessonMaterials(Long lessonId) {
+        List<LessonMaterial> lessonMaterials = lessonMaterialRepository.findAllByLessonIdAndOrganisationId(lessonId, userSession.universityId());
+        if (lessonMaterials.isEmpty())
+            return HttpApiResponse.<List<LessonMaterialResponse>>builder()
+                    .success(false)
+                    .status(404)
+                    .message("materail.not.found")
+                    .build();
+        return HttpApiResponse.<List<LessonMaterialResponse>>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(lessonMaterials.stream().map(lessonMaterialMapper::mapToLessonMaterialResponse).toList())
+                .build();
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public HttpApiResponse<Page<AttendanceResponse>> getStudentAttendances(
+            Pageable pageable, Long lessonId, Long courseId) {
+
+        if (lessonId == null && courseId == null) {
+            throw new IllegalArgumentException("courseId.or.lessonId.must.be.given");
+        }
+
+        if (lessonId != null) {
+            Attendance attendance = attendanceRepository
+                    .findByLessonIdAndStudentIdAndOrganizationId(
+                            lessonId,
+                            getCurrentStudent().getId(),
+                            userSession.universityId())
+                    .orElseThrow(() -> new EntityNotFoundException("attendance.not.found"));
+
+            AttendanceResponse response = attendanceMapper.mapToAttendanceResponse(attendance);
+
+            Page<AttendanceResponse> page =
+                    new PageImpl<>(List.of(response), pageable, 1);
+
+            return HttpApiResponse.<Page<AttendanceResponse>>builder()
+                    .success(true)
+                    .status(200)
+                    .message("ok")
+                    .data(page)
+                    .build();
+        }
+
+        // courseId bo‘yicha list qaytarish
+        Page<Attendance> attendances =
+                attendanceRepository.findAllByCourseIdAndStudentIdAndOrganizationId(
+                        courseId,
+                        getCurrentStudent().getId(),
+                        userSession.universityId(),
+                        pageable);
+
+        Page<AttendanceResponse> responsePage =
+                attendances.map(attendanceMapper::mapToAttendanceResponse);
+
+        return HttpApiResponse.<Page<AttendanceResponse>>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(responsePage)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
     @Override
     public HttpApiResponse<List<GroupShortResponse>> getAllGroupShortResponse() {
         List<Group> groupList = groupRepository.getAllByOrganizationId(userSession.universityId());

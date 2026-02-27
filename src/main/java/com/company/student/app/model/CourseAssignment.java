@@ -22,5 +22,5 @@ public class CourseAssignment extends MultiTenantEntity {
     private TeacherProfile teacher;
 
     private Integer semester;
-    private Integer academicYear;
+    private String academicYear;
 }

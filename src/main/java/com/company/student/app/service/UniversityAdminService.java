@@ -66,4 +66,8 @@ public interface UniversityAdminService {
     HttpApiResponse<Boolean> removeGroup(Long groupId);
 
     HttpApiResponse<Boolean> createTimeTable(@Valid TimeTableRequest request);
+
+    HttpApiResponse<Boolean> createCourseAssigment(@Valid CourseAssignmentRequest request);
+
+    HttpApiResponse<Boolean> assignStudentToGroup(Long studentId, Long groupId);
 }

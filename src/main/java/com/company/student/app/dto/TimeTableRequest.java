@@ -1,6 +1,8 @@
 package com.company.student.app.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.DayOfWeek;
@@ -12,16 +14,16 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @Builder
 public class TimeTableRequest {
-    @NotBlank
+    @NotNull
     private Long groupId;
-    @NotBlank
+    @NotNull
     private Long courseId;
-    @NotBlank
+    @NotNull
     private Long teacherId;
-    @NotBlank
+    @NotNull
     private DayOfWeek dayOfWeek;
-    @NotBlank
+    @JsonFormat(pattern = "HH:mm")
     private LocalTime startTime;
-    @NotBlank
+    @JsonFormat(pattern = "HH:mm")
     private LocalTime endTime;
 }

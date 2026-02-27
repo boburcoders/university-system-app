@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -17,7 +19,8 @@ import lombok.experimental.SuperBuilder;
         }
 )
 public class Attendance extends MultiTenantEntity {
-// Attendance create bolganda lesson ham create boladi
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
 
     @ManyToOne(optional = false)
     private Lesson lesson;

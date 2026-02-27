@@ -50,6 +50,11 @@ public class UniversityAdminController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
+    @PostMapping(value = "/course-assigment")
+    public ResponseEntity<HttpApiResponse<Boolean>> createCourseAssigment(@RequestBody @Valid CourseAssignmentRequest request) {
+        HttpApiResponse<Boolean> response = universityAdminService.createCourseAssigment(request);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
 
     @PostMapping(value = "/course/{faculty_id}")
     public ResponseEntity<HttpApiResponse<Boolean>> createCourse(@PathVariable Long faculty_id, @RequestBody @Valid CourseRequestDto requestDto) {
@@ -60,6 +65,12 @@ public class UniversityAdminController {
     @PostMapping(value = "/group/{faculty_id}")
     public ResponseEntity<HttpApiResponse<Boolean>> createGroup(@PathVariable Long faculty_id, @RequestBody @Valid GroupRequestDto requestDto) {
         HttpApiResponse<Boolean> response = universityAdminService.createGroup(faculty_id, requestDto);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @PutMapping(value = "/assign-student-to-group")
+    public ResponseEntity<HttpApiResponse<Boolean>> assignStudentToGroup(@RequestParam Long studentId, @RequestParam Long groupId) {
+        HttpApiResponse<Boolean> response = universityAdminService.assignStudentToGroup(studentId, groupId);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 

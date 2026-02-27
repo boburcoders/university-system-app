@@ -16,5 +16,6 @@ public abstract class UniversityAdminMapper {
 
     public abstract void updateEntity(@MappingTarget UniversityAdminProfile adminProfile, UniversityAdminUpdateRequest request);
 
-    public abstract UniversityAdminProfileResponse mapToProfileResponse(UniversityAdminProfile adminProfile);
+    @Mapping(target = "username", source = "profile.user.username")
+    public abstract UniversityAdminProfileResponse mapToProfileResponse(UniversityAdminProfile profile);
 }

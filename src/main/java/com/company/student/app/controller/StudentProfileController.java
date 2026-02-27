@@ -35,7 +35,7 @@ public class StudentProfileController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @GetMapping("/get-course-lessons/{course_id}")
+    @GetMapping("/lessons-by-course/{course_id}")
     public ResponseEntity<HttpApiResponse<Page<LessonResponse>>> getCourseLessons(
             @PathVariable Long course_id,
             @RequestParam(required = false, defaultValue = "0") Integer pageNumber,
@@ -43,6 +43,15 @@ public class StudentProfileController {
     ) {
         HttpApiResponse<Page<LessonResponse>> response
                 = profileService.getCourseLessons(PageRequest.of(pageNumber, sizeNumber), course_id);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @GetMapping("/lessons-materials/{lesson_id}")
+    public ResponseEntity<HttpApiResponse<List<LessonMaterialResponse>>> getLessonMaterials(
+            @PathVariable Long lesson_id
+    ) {
+        HttpApiResponse<List<LessonMaterialResponse>> response
+                = profileService.getLessonMaterials(lesson_id);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
@@ -60,11 +69,11 @@ public class StudentProfileController {
     public ResponseEntity<HttpApiResponse<Page<AttendanceResponse>>> getStudentAttendances(
             @RequestParam(required = false, defaultValue = "0") Integer page,
             @RequestParam(required = false, defaultValue = "10") Integer size,
-            @RequestParam LocalDate startDate,
-            @RequestParam LocalDate endDate
+            @RequestParam(required = false) Long lessonId,
+            @RequestParam(required = false) Long courseId
     ) {
         HttpApiResponse<Page<AttendanceResponse>> response
-                = profileService.getStudentAttendances(PageRequest.of(page, size), startDate, endDate);
+                = profileService.getStudentAttendances(PageRequest.of(page, size), lessonId, courseId);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 

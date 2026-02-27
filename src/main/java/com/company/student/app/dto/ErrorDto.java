@@ -1,12 +1,18 @@
 package com.company.student.app.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
+@Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class ErrorDto {
 
     private String path;

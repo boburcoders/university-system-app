@@ -47,6 +47,7 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
     private final LessonRepository lessonRepository;
     private final LessonMaterialRepository lessonMaterialRepository;
     private final TimeTableRepository timeTableRepository;
+    private final CourseAssignmentRepository courseAssignmentRepository;
 
 
     @Override
@@ -189,6 +190,24 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
                 .build();
     }
 
+    @Transactional
+    @Override
+    public HttpApiResponse<Boolean> assignStudentToGroup(Long studentId, Long groupId) {
+        StudentProfile profile = studentProfileRepository.findByIdAndOrganizationId(studentId, userSession.universityId())
+                .orElseThrow(() -> new EntityNotFoundException("user.not.found"));
+
+        Group group = groupRepository.findByIdAndOrganizationId(groupId, userSession.universityId())
+                .orElseThrow(() -> new EntityNotFoundException("group.not.found"));
+        profile.setGroup(group);
+
+        return HttpApiResponse.<Boolean>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(true)
+                .build();
+    }
+
     @Override
     public HttpApiResponse<Boolean> createStudentByExcelFile(MultipartFile file) {
         return null;
@@ -205,6 +224,42 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
                 .message("ok")
                 .status(200)
                 .data(teacherPageList.map(teacherProfileMapper::mapToShortResponse))
+                .build();
+    }
+
+    @Transactional
+    @Override
+    public HttpApiResponse<Boolean> createCourseAssigment(CourseAssignmentRequest request) {
+        Long courseId = request.getCourseId();
+        Long groupId = request.getGroupId();
+        Long teacherId = request.getTeacherId();
+        Long universityId = userSession.universityId();
+
+        Course course = courseRepository.findByIdAndOrganisationId(courseId, universityId)
+                .orElseThrow(() -> new EntityNotFoundException("course.not.found"));
+
+        Group group = groupRepository.findByIdAndOrganizationId(groupId, universityId)
+                .orElseThrow(() -> new EntityNotFoundException("group.not.found"));
+
+        TeacherProfile profile = teacherProfileRepository.findByIdAndOrganizationIdAndDeletedAtIsNull(teacherId, universityId)
+                .orElseThrow(() -> new RuntimeException("teacher.not.found"));
+
+        CourseAssignment courseAssignment = CourseAssignment.builder()
+                .course(course)
+                .group(group)
+                .teacher(profile)
+                .semester(request.getSemester())
+                .academicYear(request.getAcademicYear())
+                .organizationId(userSession.universityId())
+                .build();
+
+        courseAssignmentRepository.save(courseAssignment);
+
+        return HttpApiResponse.<Boolean>builder()
+                .success(true)
+                .status(201)
+                .message("ok")
+                .data(true)
                 .build();
     }
 
@@ -285,6 +340,7 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
         Faculty faculty = facultyMapper.mapToEntity(requestDto);
         faculty.setDepartment(department);
         faculty.setOrganizationId(userSession.universityId());
+        facultyRepository.save(faculty);
 
         return HttpApiResponse.<Boolean>builder()
                 .success(true)
@@ -501,19 +557,8 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
     @Transactional
     @Override
     public HttpApiResponse<Boolean> updateProfile(UniversityAdminUpdateRequest request) {
-        Long universityId = userSession.universityId();
         UniversityAdminProfile adminProfile = getCurrentUniversityAdmin();
-        if (request.getEmail() != null) {
-            if (universityAdminProfileRepository.existsUniversityAdminProfileByEmail(request.getEmail())) {
-                throw new IllegalArgumentException("email.already.exist");
-            }
 
-            if (authUserRepository.existsByUsernameAndOrganizationIdAndDeletedAtIsNull(request.getEmail(), universityId)) {
-                throw new IllegalArgumentException("email.already.exist");
-
-            }
-        }
-        adminProfile.getUser().setUsername(request.getEmail());
         universityAdminMapper.updateEntity(adminProfile, request);
 
         return HttpApiResponse.<Boolean>builder()
@@ -619,7 +664,6 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
                 .findByIdAndOrganisationId(courseId, userSession.universityId())
                 .orElseThrow(() -> new EntityNotFoundException("course.not.found"));
 
-        // 🔥 bulk delete (FAST)
         lessonMaterialRepository.softDeleteMaterialsByCourseId(courseId);
         lessonRepository.softDeleteLessonsByCourseId(courseId);
 

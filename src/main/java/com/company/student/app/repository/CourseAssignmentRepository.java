@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Repository
 public interface CourseAssignmentRepository extends JpaRepository<CourseAssignment, Long> {
@@ -28,7 +29,7 @@ public interface CourseAssignmentRepository extends JpaRepository<CourseAssignme
     @Query("select ca.group from CourseAssignment ca where ca.teacher.id=:profileId and ca.organizationId=:universityId and ca.deletedAt is null ")
     Page<Group> findTeacherGroups(Long profileId, Long universityId, Pageable pageable);
 
-    boolean existsByTeacherIdAndCourseIdAndGroupIdAndOrganizationId(Long id, @NotBlank Long courseId, @NotBlank Long groupId, Long universityId);
+    boolean existsByTeacherIdAndCourseIdAndOrganizationIdAndDeletedAtIsNull(Long id, @NotBlank Long courseId, Long universityId);
 
     boolean existsByTeacherIdAndGroupIdAndOrganizationIdAndDeletedAtIsNull(Long teacherId, Long groupId, Long universityId);
 
@@ -39,4 +40,12 @@ public interface CourseAssignmentRepository extends JpaRepository<CourseAssignme
              where ca.organizationId=:universityId and ca.deletedAt is null
             """)
     void softDeleteByUniversity(Long universityId, LocalDateTime now);
+
+    @Query("""
+                select ca.group.id
+                from CourseAssignment ca
+                where ca.teacher.id = :teacherId
+                  and ca.organizationId = :universityId
+            """)
+    List<Long> findTeacherGroupIds(Long teacherId, Long universityId);
 }

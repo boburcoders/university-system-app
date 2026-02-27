@@ -18,7 +18,7 @@ public interface StudentProfileService {
 
     HttpApiResponse<Page<CourseResponseDto>> getStudentCourses(Pageable pageable);
 
-    HttpApiResponse<Page<AttendanceResponse>> getStudentAttendances(Pageable pageable, LocalDate startDate, LocalDate endDate);
+    HttpApiResponse<Page<AttendanceResponse>> getStudentAttendances(Pageable pageable, Long lessonId, Long courseId);
 
     HttpApiResponse<Boolean> updateProfile(StudentProfileUpdateRequest request);
 
@@ -33,4 +33,6 @@ public interface StudentProfileService {
     HttpApiResponse<UserMeResponse> getMe(Authentication authentication);
 
     HttpApiResponse<List<TeacherResponse>> getAllTeacher();
+
+    HttpApiResponse<List<LessonMaterialResponse>> getLessonMaterials(Long lessonId);
 }

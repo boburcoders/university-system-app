@@ -13,6 +13,7 @@ import com.company.student.app.repository.UniversityRepository;
 import com.company.student.app.repository.UniversityUserRoleRepository;
 import com.company.student.app.service.AuthService;
 import com.company.student.app.service.mapper.UniversityMapper;
+import com.company.student.app.utils.Translator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,6 +31,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final UniversityMapper universityMapper;
+    private final Translator translator;
 
     @Override
     public HttpApiResponse<TokenResponseDto> login(TokeRequestDto dto) {
@@ -64,7 +66,7 @@ public class AuthServiceImpl implements AuthService {
         return HttpApiResponse.<TokenResponseDto>builder()
                 .success(true)
                 .status(200)
-                .message("user.login.successfully")
+                .message(translator.toLocale("user.login.successfully"))
                 .data(responseDto)
                 .build();
     }
