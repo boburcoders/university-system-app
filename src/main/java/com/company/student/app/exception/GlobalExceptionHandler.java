@@ -2,11 +2,11 @@ package com.company.student.app.exception;
 
 import com.company.student.app.dto.HttpApiResponse;
 import com.company.student.app.model.enums.ErrorCode;
+import com.company.student.app.utils.Translator;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -16,27 +16,21 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 @Slf4j
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
-    private final MessageSource messageSource;
+    private final Translator translator;
 
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<HttpApiResponse<Void>> handleEntityNotFound(
             EntityNotFoundException ex,
-            HttpServletRequest request,
-            Locale locale) {
+            HttpServletRequest request) {
 
-        String message = messageSource.getMessage(
-                ex.getMessage(),   // entity.not.found
-                null,
-                locale
-        );
+        String message = translator.toLocale(ex.getMessage());
 
         HttpApiResponse<Void> response = HttpApiResponse.<Void>builder()
                 .success(false)
@@ -61,11 +55,13 @@ public class GlobalExceptionHandler {
         }
 
         log.warn("Validation error: {}", errors);
+        String message = translator.toLocale(ex.getMessage());
+
 
         HttpApiResponse<Map<String, String>> response =
                 HttpApiResponse.<Map<String, String>>builder()
                         .success(false)
-                        .message("Validation failed")
+                        .message(message)
                         .data(errors)
                         .errorCode(ErrorCode.VALIDATION_ERROR)
                         .status(HttpStatus.BAD_REQUEST.value())
@@ -81,11 +77,12 @@ public class GlobalExceptionHandler {
             IllegalArgumentException ex,
             HttpServletRequest request) {
 
-        log.warn("Bad request: {}", ex.getMessage());
+        String message = translator.toLocale(ex.getMessage());
+        log.warn("Bad request: {}", message);
 
         HttpApiResponse<Void> response = HttpApiResponse.<Void>builder()
                 .success(false)
-                .message(ex.getMessage())
+                .message(message)
                 .errorCode(ErrorCode.BAD_REQUEST)
                 .status(HttpStatus.BAD_REQUEST.value())
                 .path(request.getRequestURI())
@@ -120,10 +117,11 @@ public class GlobalExceptionHandler {
             HttpServletRequest request) {
 
         log.warn("Access denied: {}", ex.getMessage());
+        String message = translator.toLocale(ex.getMessage());
 
         HttpApiResponse<Void> response = HttpApiResponse.<Void>builder()
                 .success(false)
-                .message("Access denied")
+                .message(message)
                 .errorCode(ErrorCode.ACCESS_DENIED)
                 .status(HttpStatus.FORBIDDEN.value())
                 .path(request.getRequestURI())

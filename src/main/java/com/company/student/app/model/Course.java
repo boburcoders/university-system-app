@@ -13,8 +13,11 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-public class Course extends MultiTenantEntity{
-    @Column(unique = true, nullable = false)
+@Table(uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"code", "organizationId"})
+})
+public class Course extends MultiTenantEntity {
+    @Column(nullable = false)
     private String code;
 
     private String title;

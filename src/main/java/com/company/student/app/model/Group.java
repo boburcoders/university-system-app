@@ -10,7 +10,11 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name = "student_group")
+@Table(name = "student_group", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"code", "organizationId"}),
+        @UniqueConstraint(columnNames = {"name", "organizationId"})
+})
+
 public class Group extends MultiTenantEntity {
     private String name;
     private String code;

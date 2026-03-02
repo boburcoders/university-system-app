@@ -10,7 +10,10 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-@Table
+@Table(uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"email", "organizationId"}),
+        @UniqueConstraint(columnNames = {"phoneNumber", "organizationId"})
+})
 public class TeacherProfile extends MultiTenantEntity {
 
     private String firstName;
@@ -20,10 +23,10 @@ public class TeacherProfile extends MultiTenantEntity {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(nullable = false,unique = true)
+    @Column(nullable = false)
     private String email;
 
-    @Column(nullable = false,unique = true)
+    @Column(nullable = false)
     private String phoneNumber;
 
     @Column(length = 500)
