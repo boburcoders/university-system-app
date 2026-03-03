@@ -47,7 +47,7 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public HttpApiResponse<AddressResponseDto> getById(Long id) {
-        Address address = addressRepository.findByIdAndOrgzanizationId(id, userSession.universityId())
+        Address address = addressRepository.findByIdAndOrganizationId(id, userSession.universityId())
                 .orElseThrow(() -> new EntityNotFoundException("address.not.found"));
 
         return HttpApiResponse.<AddressResponseDto>builder()
@@ -77,7 +77,7 @@ public class AddressServiceImpl implements AddressService {
     @Override
     public HttpApiResponse<Boolean> deleteAddress(Long id) {
 
-        Address address = addressRepository.findByIdAndOrgzanizationId(id, userSession.universityId())
+        Address address = addressRepository.findByIdAndOrganizationId(id, userSession.universityId())
                 .orElseThrow(() -> new EntityNotFoundException("address.not.found"));
 
         getCurrentUser().setAddress(null);

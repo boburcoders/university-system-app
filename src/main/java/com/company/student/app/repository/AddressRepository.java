@@ -10,5 +10,5 @@ import java.util.Optional;
 @Repository
 public interface AddressRepository extends JpaRepository<Address, Long> {
     @Query("select a from Address a where a.id=:id and a.organizationId=:organizationId and a.deletedAt is null ")
-    Optional<Address> findByIdAndOrgzanizationId(Long id, Long organizationId);
+    Optional<Address> findByIdAndOrganizationId(Long id, Long organizationId);
 }

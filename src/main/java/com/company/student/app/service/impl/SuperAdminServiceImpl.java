@@ -59,7 +59,7 @@ public class SuperAdminServiceImpl implements SuperAdminService {
         if (authUserRepository.existsByUsernameAndOrganizationIdAndDeletedAtIsNull(request.getEmail(), universityId)) {
             throw new IllegalArgumentException("email.already.exists");
         }
-        if (universityAdminProfileRepository.existsUniversityAdminProfileByEmail(request.getEmail())) {
+        if (universityAdminProfileRepository.existsUniversityAdminProfileByEmailAndOrganizationId(request.getEmail(),universityId)) {
             throw new IllegalArgumentException("email.already.exists");
         }
 
