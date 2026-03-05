@@ -21,6 +21,7 @@ import com.company.student.app.dto.timetable.TimeTableRequest;
 import com.company.student.app.dto.univerAdmin.StatisticResponse;
 import com.company.student.app.dto.univerAdmin.UniversityAdminProfileResponse;
 import com.company.student.app.dto.univerAdmin.UniversityAdminUpdateRequest;
+import com.company.student.app.dto.university.UniversityProfileResponse;
 import com.company.student.app.dto.university.UniversityUpdateRequest;
 import com.company.student.app.service.UniversityAdminService;
 import jakarta.validation.Valid;
@@ -111,6 +112,13 @@ public class UniversityAdminController {
     public ResponseEntity<HttpApiResponse<UniversityAdminProfileResponse>> getUniversityAdminProfile() {
         HttpApiResponse<UniversityAdminProfileResponse> response
                 = universityAdminService.getUniversityAdminProfile();
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @GetMapping("/university-profile")
+    public ResponseEntity<HttpApiResponse<UniversityProfileResponse>> getUniversityProfile() {
+        HttpApiResponse<UniversityProfileResponse> response
+                = universityAdminService.getUniversityProfile();
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 

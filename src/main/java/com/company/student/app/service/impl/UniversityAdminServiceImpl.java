@@ -2,6 +2,7 @@ package com.company.student.app.service.impl;
 
 import com.company.student.app.config.security.TenantContext;
 import com.company.student.app.config.security.UserSession;
+import com.company.student.app.dto.address.AddressResponseDto;
 import com.company.student.app.dto.course.CourseAssignmentRequest;
 import com.company.student.app.dto.course.CourseRequestDto;
 import com.company.student.app.dto.course.CourseResponseDto;
@@ -23,6 +24,7 @@ import com.company.student.app.dto.timetable.TimeTableRequest;
 import com.company.student.app.dto.univerAdmin.StatisticResponse;
 import com.company.student.app.dto.univerAdmin.UniversityAdminProfileResponse;
 import com.company.student.app.dto.univerAdmin.UniversityAdminUpdateRequest;
+import com.company.student.app.dto.university.UniversityProfileResponse;
 import com.company.student.app.dto.university.UniversityUpdateRequest;
 import com.company.student.app.model.*;
 import com.company.student.app.model.enums.UniversityRole;
@@ -559,11 +561,16 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
         Long universityId = userSession.universityId();
         University university = universityRepository.findByIdAndDeletedAtIsNull(universityId)
                 .orElseThrow(() -> new EntityNotFoundException("university.not.found"));
-        if (universityRepository.existsUniversitiesByCodeAndDeletedAtIsNull(request.getCode())) {
-            throw new IllegalArgumentException("code.already.exists");
+        if (request.getCode() != null) {
+            if (universityRepository.existsByCodeAndIdNotAndDeletedAtIsNull(request.getCode(), universityId)) {
+                throw new IllegalArgumentException("code.already.exists");
+            }
         }
-        if (universityRepository.existsUniversitiesByNameAndDeletedAtIsNull(request.getName())) {
-            throw new IllegalArgumentException("name.already.exists");
+
+        if (request.getName() != null) {
+            if (universityRepository.existsByNameAndIdNotAndDeletedAtIsNull(request.getName(), universityId)) {
+                throw new IllegalArgumentException("name.already.exists");
+            }
         }
         universityMapper.updateUniversity(university, request);
 
@@ -572,6 +579,20 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
                 .message("university.updated")
                 .status(200)
                 .data(true)
+                .build();
+    }
+
+    @Override
+    public HttpApiResponse<UniversityProfileResponse> getUniversityProfile() {
+        University university = universityRepository.findByIdAndDeletedAtIsNull(userSession.universityId())
+                .orElseThrow(() -> new EntityNotFoundException("university.not.found"));
+        UniversityProfileResponse universityProfileResponse = universityMapper.mapToUniversityProfile(university);
+
+        return HttpApiResponse.<UniversityProfileResponse>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(universityProfileResponse)
                 .build();
     }
 

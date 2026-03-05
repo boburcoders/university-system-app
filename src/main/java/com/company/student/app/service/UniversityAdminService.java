@@ -21,6 +21,7 @@ import com.company.student.app.dto.timetable.TimeTableRequest;
 import com.company.student.app.dto.univerAdmin.StatisticResponse;
 import com.company.student.app.dto.univerAdmin.UniversityAdminProfileResponse;
 import com.company.student.app.dto.univerAdmin.UniversityAdminUpdateRequest;
+import com.company.student.app.dto.university.UniversityProfileResponse;
 import com.company.student.app.dto.university.UniversityUpdateRequest;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -90,4 +91,6 @@ public interface UniversityAdminService {
     HttpApiResponse<Boolean> createCourseAssigment(@Valid CourseAssignmentRequest request);
 
     HttpApiResponse<Boolean> assignStudentToGroup(Long studentId, Long groupId);
+
+    HttpApiResponse<UniversityProfileResponse> getUniversityProfile();
 }

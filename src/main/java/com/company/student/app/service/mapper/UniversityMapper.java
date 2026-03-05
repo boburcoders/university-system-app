@@ -1,6 +1,7 @@
 package com.company.student.app.service.mapper;
 
 import com.company.student.app.dto.univerAdmin.UniversityCreateRequestDto;
+import com.company.student.app.dto.university.UniversityProfileResponse;
 import com.company.student.app.dto.university.UniversityResponse;
 import com.company.student.app.dto.university.UniversityShortResponse;
 import com.company.student.app.dto.university.UniversityUpdateRequest;
@@ -19,4 +20,6 @@ public abstract class UniversityMapper {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     public abstract void updateUniversity(@MappingTarget University university, UniversityUpdateRequest request);
+
+    public abstract UniversityProfileResponse mapToUniversityProfile(University university);
 }

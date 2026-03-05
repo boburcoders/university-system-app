@@ -23,7 +23,5 @@ public class University extends AuditingEntity {
     @Column(length = 500)
     private String logoName;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "address_id")
-    private Address address;
+    private String address;
 }

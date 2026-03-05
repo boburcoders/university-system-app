@@ -22,6 +22,10 @@ public interface UniversityRepository extends JpaRepository<University, Long> {
 
     boolean existsUniversitiesByNameAndDeletedAtIsNull(String name);
 
+    boolean existsByNameAndIdNotAndDeletedAtIsNull(String name, Long id);
+
+    boolean existsByCodeAndIdNotAndDeletedAtIsNull(String code, Long id);
+
     @Query("select u from University  u where u.deletedAt is null ")
     List<University> findAllUniversity();
 }
