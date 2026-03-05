@@ -15,7 +15,7 @@ import java.util.Optional;
 
 @Repository
 public interface TeacherProfileRepository extends JpaRepository<TeacherProfile, Long> {
-    boolean existsTeacherProfileByEmail(String email);
+    boolean existsTeacherProfileByEmailAndOrganizationId(String email,Long organizationId);
 
     @Query("""
             select t from TeacherProfile t

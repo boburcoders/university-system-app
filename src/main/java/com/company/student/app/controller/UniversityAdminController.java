@@ -32,7 +32,7 @@ public class UniversityAdminController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @PostMapping(value = "/student-by-excel")
+    @PostMapping(value = "/student-by-excel",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<HttpApiResponse<Boolean>> createStudentByExcelFile(@RequestParam MultipartFile file) {
         HttpApiResponse<Boolean> response = universityAdminService.createStudentByExcelFile(file);
         return ResponseEntity.status(response.getStatus()).body(response);

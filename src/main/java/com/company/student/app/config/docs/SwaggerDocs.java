@@ -22,9 +22,9 @@ public class SwaggerDocs {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Spring Boot Student System App")
+                        .title("Student System App")
                         .version("1.0")
-                        .description("Spring Boot Student System App")
+                        .description("Student System App")
                         .termsOfService("https://spring.io/terms")
                         .contact(new Contact()
                                 .name("Bobur")

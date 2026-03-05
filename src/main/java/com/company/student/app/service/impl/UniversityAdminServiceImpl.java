@@ -10,6 +10,8 @@ import com.company.student.app.service.UniversityAdminService;
 import com.company.student.app.service.mapper.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -18,8 +20,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
@@ -103,7 +110,7 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
         if (authUserRepository.existsByUsernameAndOrganizationIdAndDeletedAtIsNull(request.getEmail(), organizationId)) {
             throw new IllegalArgumentException("email.already.exsist");
         }
-        if (teacherProfileRepository.existsTeacherProfileByEmail(request.getEmail())) {
+        if (teacherProfileRepository.existsTeacherProfileByEmailAndOrganizationId(request.getEmail(), organizationId)) {
             throw new IllegalArgumentException("email.already.exsist");
         }
 
@@ -154,11 +161,15 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
         String password = request.getPassword();
         String phoneNumber = request.getPhoneNumber();
 
-        if (studentProfileRepository.existsStudentProfileByEmail(email)) {
+        if (studentProfileRepository.existsStudentProfileByEmailAndOrganizationId(email, universityId)) {
             throw new IllegalArgumentException("email.already.exist");
         }
         if (studentProfileRepository.existsStudentProfileByStudentNumberAndOrganizationId(studentNumber, universityId)) {
             throw new IllegalArgumentException("studentNumber.already.exist");
+        }
+
+        if (studentProfileRepository.existsStudentProfileByPhoneNumberAndOrganizationId(phoneNumber, universityId)) {
+            throw new IllegalArgumentException("phoneNumber.already.exist");
         }
 
         University university = universityRepository.findByIdAndDeletedAtIsNull(universityId)
@@ -214,9 +225,104 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
                 .build();
     }
 
+    @Transactional
     @Override
     public HttpApiResponse<Boolean> createStudentByExcelFile(MultipartFile file) {
-        return null;
+        validateExcelFile(file);
+        try (InputStream inputStream = file.getInputStream();
+             Workbook workbook = new XSSFWorkbook(inputStream)) {
+
+            Sheet sheet = workbook.getSheetAt(0);
+
+            Long universityId = userSession.universityId();
+
+            List<StudentProfile> profileList = new ArrayList<>();
+            List<AuthUser> userList = new ArrayList<>();
+            List<UniversityUserRole> userRoles = new ArrayList<>();
+
+            Set<String> emailSet = new HashSet<>();
+            Set<String> studentNumberSet = new HashSet<>();
+            Set<String> phoneSet = new HashSet<>();
+            DataFormatter formatter = new DataFormatter();
+            for (Row row : sheet) {
+                if (row.getRowNum() == 0) continue;
+
+                String email = formatter.formatCellValue(row.getCell(0)).trim();
+                String studentNumber = formatter.formatCellValue(row.getCell(1)).trim();
+                String password = formatter.formatCellValue(row.getCell(2)).trim();
+                String phone = formatter.formatCellValue(row.getCell(3)).trim();
+
+                // Excel ichidagi duplicate check
+                if (!emailSet.add(email))
+                    throw new IllegalArgumentException("excel.email.duplicate");
+
+                if (!studentNumberSet.add(studentNumber))
+                    throw new IllegalArgumentException("excel.studentNumber.duplicate");
+
+                if (!phoneSet.add(phone))
+                    throw new IllegalArgumentException("excel.phone.duplicate");
+
+                AuthUser user = AuthUser.builder()
+                        .username(studentNumber)
+                        .password(passwordEncoder.encode(password))
+                        .organizationId(universityId)
+                        .build();
+
+                userList.add(user);
+
+                StudentProfile profile = StudentProfile.builder()
+                        .studentNumber(studentNumber)
+                        .organizationId(universityId)
+                        .email(email)
+                        .phoneNumber(phone)
+                        .user(user)
+                        .build();
+                profileList.add(profile);
+
+                UniversityUserRole userRole = UniversityUserRole.builder()
+                        .organizationId(universityId)
+                        .role(UniversityRole.STUDENT)
+                        .user(user)
+                        .university(universityRepository.findByIdAndDeletedAtIsNull(userSession.universityId()).orElse(null))
+                        .build();
+                userRoles.add(userRole);
+
+            }
+
+            // DB ichidagi duplicate check (bir martada)
+            if (studentProfileRepository.existsByEmailInAndOrganizationId(emailSet, universityId))
+                throw new IllegalArgumentException("email.already.exists");
+
+            if (studentProfileRepository.existsByStudentNumberInAndOrganizationId(studentNumberSet, universityId))
+                throw new IllegalArgumentException("studentNumber.already.exists");
+
+            if (studentProfileRepository.existsByPhoneNumberInAndOrganizationId(phoneSet, universityId))
+                throw new IllegalArgumentException("phone.already.exists");
+
+            authUserRepository.saveAll(userList);
+            studentProfileRepository.saveAll(profileList);
+            userRoleRepository.saveAll(userRoles);
+
+            return HttpApiResponse.<Boolean>builder()
+                    .success(true)
+                    .status(201)
+                    .message("students.created")
+                    .data(true)
+                    .build();
+
+        } catch (IOException e) {
+            throw new RuntimeException("unable.to.add.student");
+        }
+    }
+
+    private void validateExcelFile(MultipartFile file) {
+        try (InputStream is = file.getInputStream()) {
+
+            WorkbookFactory.create(is);
+
+        } catch (Exception e) {
+            throw new IllegalArgumentException("file.not.valid.excel");
+        }
     }
 
     @Override
@@ -716,7 +822,6 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
                 .findByIdAndOrganizationId(facultyId, orgId)
                 .orElseThrow(() -> new EntityNotFoundException("faculty.not.found"));
 
-        // 🔥 BULK SOFT DELETE (ultra fast)
         lessonMaterialRepository.softDeleteMaterialsByFaculty(facultyId);
         lessonRepository.softDeleteLessonsByFaculty(facultyId);
         courseRepository.softDeleteCoursesByFaculty(facultyId);

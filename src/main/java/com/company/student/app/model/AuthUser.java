@@ -13,7 +13,9 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name = "auth_user")
+@Table(name = "auth_user", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"username", "organizationId"})
+})
 public class AuthUser extends MultiTenantEntity {
 
     @Column(nullable = false)

@@ -30,6 +30,9 @@ public class SecurityConfig {
 
     private static final String[] WHITELIST = {
             "/api/auth/login/**",
+            "/api/auth/get-universities*",
+            "/api/file/download",      // ← ADD THIS
+            "/api/file/download/**",
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/swagger-ui.html",

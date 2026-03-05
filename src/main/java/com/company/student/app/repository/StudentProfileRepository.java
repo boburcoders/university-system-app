@@ -11,10 +11,11 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface StudentProfileRepository extends JpaRepository<StudentProfile, Long> {
-    boolean existsStudentProfileByEmail(String email);
+    boolean existsStudentProfileByEmailAndOrganizationId(String email, Long organizationId);
 
     boolean existsStudentProfileByStudentNumberAndOrganizationId(String studentNumber, Long organizationId);
 
@@ -41,4 +42,12 @@ public interface StudentProfileRepository extends JpaRepository<StudentProfile, 
     void softDeleteByUniversity(Long universityId, LocalDateTime now);
 
     List<StudentProfile> findAllByIdInAndOrganizationId(List<Long> studentIds, Long organizationId);
+
+    boolean existsStudentProfileByPhoneNumberAndOrganizationId(String phoneNumber, Long universityId);
+
+    boolean existsByEmailInAndOrganizationId(Set<String> emailSet, Long universityId);
+
+    boolean existsByStudentNumberInAndOrganizationId(Set<String> studentNumberSet, Long universityId);
+
+    boolean existsByPhoneNumberInAndOrganizationId(Set<String> phoneSet, Long universityId);
 }

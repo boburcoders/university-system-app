@@ -7,11 +7,13 @@ import com.company.student.app.dto.HttpApiResponse;
 import com.company.student.app.service.AddressService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/address")
+@PreAuthorize("isFullyAuthenticated()")
 public class AddressController {
     private final AddressService addressService;
 
