@@ -822,7 +822,6 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
                 .findByIdAndOrganizationId(facultyId, orgId)
                 .orElseThrow(() -> new EntityNotFoundException("faculty.not.found"));
 
-        // 🔥 BULK SOFT DELETE (ultra fast)
         lessonMaterialRepository.softDeleteMaterialsByFaculty(facultyId);
         lessonRepository.softDeleteLessonsByFaculty(facultyId);
         courseRepository.softDeleteCoursesByFaculty(facultyId);

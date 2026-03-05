@@ -18,16 +18,16 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/student-profile")
-@PreAuthorize("hasRole('STUDENT')")
-public class StudentProfileController {
-    private final StudentProfileService profileService;
+    @RequestMapping("/api/student-profile")
+    @PreAuthorize("hasRole('STUDENT')")
+    public class StudentProfileController {
+        private final StudentProfileService profileService;
 
-    @GetMapping("/me")
-    public ResponseEntity<HttpApiResponse<UserMeResponse>> getCurrentUser(Authentication authentication) {
-        HttpApiResponse<UserMeResponse> response = profileService.getMe(authentication);
-        return ResponseEntity.status(response.getStatus()).body(response);
-    }
+        @GetMapping("/me")
+        public ResponseEntity<HttpApiResponse<UserMeResponse>> getCurrentUser(Authentication authentication) {
+            HttpApiResponse<UserMeResponse> response = profileService.getMe(authentication);
+            return ResponseEntity.status(response.getStatus()).body(response);
+        }
 
     @GetMapping("/profile")
     public ResponseEntity<HttpApiResponse<StudentProfileResponse>> getProfile() {
