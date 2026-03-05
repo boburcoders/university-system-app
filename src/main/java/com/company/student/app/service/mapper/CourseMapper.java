@@ -1,7 +1,7 @@
 package com.company.student.app.service.mapper;
 
-import com.company.student.app.dto.CourseRequestDto;
-import com.company.student.app.dto.CourseResponseDto;
+import com.company.student.app.dto.course.CourseRequestDto;
+import com.company.student.app.dto.course.CourseResponseDto;
 import com.company.student.app.model.Course;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

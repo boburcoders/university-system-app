@@ -1,11 +1,13 @@
 package com.company.student.app.controller;
 
-import com.company.student.app.dto.*;
+import com.company.student.app.dto.auth.TokeRequestDto;
+import com.company.student.app.dto.auth.TokenResponseDto;
+import com.company.student.app.dto.response.HttpApiResponse;
+import com.company.student.app.dto.university.UniversityShortResponse;
 import com.company.student.app.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

@@ -1,9 +1,9 @@
 package com.company.student.app.service.mapper;
 
-import com.company.student.app.dto.TeacherProfileResponse;
-import com.company.student.app.dto.TeacherResponse;
-import com.company.student.app.dto.TeacherShortResponseDto;
-import com.company.student.app.dto.TeacherUpdateRequest;
+import com.company.student.app.dto.teacher.TeacherProfileResponse;
+import com.company.student.app.dto.teacher.TeacherResponse;
+import com.company.student.app.dto.teacher.TeacherShortResponseDto;
+import com.company.student.app.dto.teacher.TeacherUpdateRequest;
 import com.company.student.app.model.TeacherProfile;
 import org.mapstruct.*;
 

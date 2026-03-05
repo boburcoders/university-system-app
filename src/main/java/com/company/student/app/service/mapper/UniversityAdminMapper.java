@@ -1,9 +1,8 @@
 package com.company.student.app.service.mapper;
 
-import com.company.student.app.dto.UniversityAdminProfileResponse;
-import com.company.student.app.dto.UniversityAdminRequest;
-import com.company.student.app.dto.UniversityAdminUpdateRequest;
-import com.company.student.app.model.AuthUser;
+import com.company.student.app.dto.univerAdmin.UniversityAdminProfileResponse;
+import com.company.student.app.dto.univerAdmin.UniversityAdminRequest;
+import com.company.student.app.dto.univerAdmin.UniversityAdminUpdateRequest;
 import com.company.student.app.model.UniversityAdminProfile;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

@@ -1,6 +1,12 @@
 package com.company.student.app.controller;
 
-import com.company.student.app.dto.*;
+import com.company.student.app.dto.response.HttpApiResponse;
+import com.company.student.app.dto.response.UserMeResponse;
+import com.company.student.app.dto.systemAdmin.SuperAdminResponse;
+import com.company.student.app.dto.systemAdmin.SystemAdminUpdateRequest;
+import com.company.student.app.dto.univerAdmin.UniversityAdminRequest;
+import com.company.student.app.dto.univerAdmin.UniversityCreateRequestDto;
+import com.company.student.app.dto.university.UniversityResponse;
 import com.company.student.app.service.SuperAdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

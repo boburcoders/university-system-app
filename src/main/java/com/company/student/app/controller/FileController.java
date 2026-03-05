@@ -1,6 +1,6 @@
 package com.company.student.app.controller;
 
-import com.company.student.app.dto.HttpApiResponse;
+import com.company.student.app.dto.response.HttpApiResponse;
 import com.company.student.app.service.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;

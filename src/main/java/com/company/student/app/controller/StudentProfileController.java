@@ -1,19 +1,25 @@
 package com.company.student.app.controller;
 
-import com.company.student.app.dto.*;
+import com.company.student.app.dto.attedance.AttendanceResponse;
+import com.company.student.app.dto.course.CourseResponseDto;
+import com.company.student.app.dto.group.GroupShortResponse;
+import com.company.student.app.dto.lesson.LessonMaterialResponse;
+import com.company.student.app.dto.lesson.LessonResponse;
+import com.company.student.app.dto.response.HttpApiResponse;
+import com.company.student.app.dto.response.UserMeResponse;
+import com.company.student.app.dto.student.StudentProfileResponse;
+import com.company.student.app.dto.student.StudentProfileUpdateRequest;
+import com.company.student.app.dto.teacher.TeacherResponse;
+import com.company.student.app.dto.timetable.TimeTableResponse;
 import com.company.student.app.service.StudentProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController

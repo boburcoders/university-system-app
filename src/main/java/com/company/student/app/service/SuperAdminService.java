@@ -1,13 +1,17 @@
 package com.company.student.app.service;
 
-import com.company.student.app.dto.*;
+import com.company.student.app.dto.response.HttpApiResponse;
+import com.company.student.app.dto.response.UserMeResponse;
+import com.company.student.app.dto.systemAdmin.SuperAdminResponse;
+import com.company.student.app.dto.systemAdmin.SystemAdminUpdateRequest;
+import com.company.student.app.dto.univerAdmin.UniversityAdminRequest;
+import com.company.student.app.dto.univerAdmin.UniversityCreateRequestDto;
+import com.company.student.app.dto.university.UniversityResponse;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public interface SuperAdminService {

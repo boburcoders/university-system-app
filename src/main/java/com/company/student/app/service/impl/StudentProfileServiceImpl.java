@@ -2,7 +2,17 @@ package com.company.student.app.service.impl;
 
 import com.company.student.app.config.security.TenantContext;
 import com.company.student.app.config.security.UserSession;
-import com.company.student.app.dto.*;
+import com.company.student.app.dto.attedance.AttendanceResponse;
+import com.company.student.app.dto.course.CourseResponseDto;
+import com.company.student.app.dto.group.GroupShortResponse;
+import com.company.student.app.dto.lesson.LessonMaterialResponse;
+import com.company.student.app.dto.lesson.LessonResponse;
+import com.company.student.app.dto.response.HttpApiResponse;
+import com.company.student.app.dto.response.UserMeResponse;
+import com.company.student.app.dto.student.StudentProfileResponse;
+import com.company.student.app.dto.student.StudentProfileUpdateRequest;
+import com.company.student.app.dto.teacher.TeacherResponse;
+import com.company.student.app.dto.timetable.TimeTableResponse;
 import com.company.student.app.model.*;
 import com.company.student.app.repository.*;
 import com.company.student.app.service.StudentProfileService;

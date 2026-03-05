@@ -1,14 +1,23 @@
 package com.company.student.app.service;
 
-import com.company.student.app.dto.*;
+import com.company.student.app.dto.attedance.AttendanceRequestDto;
+import com.company.student.app.dto.course.CourseResponseDto;
+import com.company.student.app.dto.group.GroupResponse;
+import com.company.student.app.dto.lesson.LessonCreateRequest;
+import com.company.student.app.dto.lesson.LessonMaterialRequest;
+import com.company.student.app.dto.lesson.LessonMaterialResponse;
+import com.company.student.app.dto.lesson.LessonResponse;
+import com.company.student.app.dto.response.HttpApiResponse;
+import com.company.student.app.dto.response.UserMeResponse;
+import com.company.student.app.dto.student.StudentAttendanceResponse;
+import com.company.student.app.dto.teacher.TeacherProfileResponse;
+import com.company.student.app.dto.teacher.TeacherUpdateRequest;
+import com.company.student.app.dto.timetable.TimeTableResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.util.List;
 
 @Service

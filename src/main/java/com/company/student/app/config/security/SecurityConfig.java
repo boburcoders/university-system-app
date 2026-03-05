@@ -2,7 +2,7 @@ package com.company.student.app.config.security;
 
 import com.company.student.app.config.security.cors.CorsConfig;
 import com.company.student.app.config.security.jwt.JwtFilter;
-import com.company.student.app.dto.ErrorDto;
+import com.company.student.app.dto.response.ErrorDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletOutputStream;
 import lombok.RequiredArgsConstructor;

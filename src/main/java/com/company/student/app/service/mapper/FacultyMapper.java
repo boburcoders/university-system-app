@@ -1,8 +1,8 @@
 package com.company.student.app.service.mapper;
 
-import com.company.student.app.dto.FacultyRequestDto;
-import com.company.student.app.dto.FacultyResponse;
-import com.company.student.app.dto.FacultyUpdateRequest;
+import com.company.student.app.dto.faculty.FacultyRequestDto;
+import com.company.student.app.dto.faculty.FacultyResponse;
+import com.company.student.app.dto.faculty.FacultyUpdateRequest;
 import com.company.student.app.model.Faculty;
 import org.mapstruct.*;
 

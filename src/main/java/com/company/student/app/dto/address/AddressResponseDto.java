@@ -1,0 +1,15 @@
+package com.company.student.app.dto.address;
+
+import lombok.*;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class AddressResponseDto {
+    private String city;
+    private String region;
+    private String street;
+    private int apartmentNumber;
+}

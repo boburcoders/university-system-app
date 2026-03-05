@@ -1,10 +1,10 @@
 package com.company.student.app.service.impl;
 
 import com.company.student.app.config.security.UserSession;
-import com.company.student.app.dto.AddressRequest;
-import com.company.student.app.dto.AddressResponseDto;
-import com.company.student.app.dto.AddressUpdateDto;
-import com.company.student.app.dto.HttpApiResponse;
+import com.company.student.app.dto.address.AddressRequest;
+import com.company.student.app.dto.address.AddressResponseDto;
+import com.company.student.app.dto.address.AddressUpdateDto;
+import com.company.student.app.dto.response.HttpApiResponse;
 import com.company.student.app.model.Address;
 import com.company.student.app.model.AuthUser;
 import com.company.student.app.repository.AddressRepository;

@@ -1,10 +1,10 @@
 package com.company.student.app.service.impl;
 
 import com.company.student.app.config.security.jwt.JwtService;
-import com.company.student.app.dto.HttpApiResponse;
-import com.company.student.app.dto.TokeRequestDto;
-import com.company.student.app.dto.TokenResponseDto;
-import com.company.student.app.dto.UniversityShortResponse;
+import com.company.student.app.dto.response.HttpApiResponse;
+import com.company.student.app.dto.auth.TokeRequestDto;
+import com.company.student.app.dto.auth.TokenResponseDto;
+import com.company.student.app.dto.university.UniversityShortResponse;
 import com.company.student.app.model.AuthUser;
 import com.company.student.app.model.University;
 import com.company.student.app.model.UniversityUserRole;

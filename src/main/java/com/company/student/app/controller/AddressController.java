@@ -1,9 +1,9 @@
 package com.company.student.app.controller;
 
-import com.company.student.app.dto.AddressRequest;
-import com.company.student.app.dto.AddressResponseDto;
-import com.company.student.app.dto.AddressUpdateDto;
-import com.company.student.app.dto.HttpApiResponse;
+import com.company.student.app.dto.address.AddressRequest;
+import com.company.student.app.dto.address.AddressResponseDto;
+import com.company.student.app.dto.address.AddressUpdateDto;
+import com.company.student.app.dto.response.HttpApiResponse;
 import com.company.student.app.service.AddressService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

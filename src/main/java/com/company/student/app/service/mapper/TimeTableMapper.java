@@ -1,10 +1,9 @@
 package com.company.student.app.service.mapper;
 
-import com.company.student.app.dto.TimeTableResponse;
+import com.company.student.app.dto.timetable.TimeTableResponse;
 import com.company.student.app.model.TimeTable;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 
 import java.util.List;
 

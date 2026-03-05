@@ -1,7 +1,7 @@
 package com.company.student.app.service.mapper;
 
-import com.company.student.app.dto.SuperAdminResponse;
-import com.company.student.app.dto.SystemAdminUpdateRequest;
+import com.company.student.app.dto.systemAdmin.SuperAdminResponse;
+import com.company.student.app.dto.systemAdmin.SystemAdminUpdateRequest;
 import com.company.student.app.model.SystemAdminProfile;
 import org.mapstruct.*;
 

@@ -1,8 +1,8 @@
 package com.company.student.app.service.mapper;
 
-import com.company.student.app.dto.GroupRequestDto;
-import com.company.student.app.dto.GroupResponse;
-import com.company.student.app.dto.GroupShortResponse;
+import com.company.student.app.dto.group.GroupRequestDto;
+import com.company.student.app.dto.group.GroupResponse;
+import com.company.student.app.dto.group.GroupShortResponse;
 import com.company.student.app.model.Group;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

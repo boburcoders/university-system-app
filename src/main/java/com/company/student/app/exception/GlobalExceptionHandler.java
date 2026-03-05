@@ -1,6 +1,6 @@
 package com.company.student.app.exception;
 
-import com.company.student.app.dto.HttpApiResponse;
+import com.company.student.app.dto.response.HttpApiResponse;
 import com.company.student.app.model.enums.ErrorCode;
 import com.company.student.app.utils.Translator;
 import jakarta.persistence.EntityNotFoundException;

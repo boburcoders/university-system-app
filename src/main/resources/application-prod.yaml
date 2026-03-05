@@ -31,3 +31,6 @@ springdoc:
     enabled: true
   api-docs:
     enabled: true
+logging:
+  level:
+    org.simpleframework.web: ERROR

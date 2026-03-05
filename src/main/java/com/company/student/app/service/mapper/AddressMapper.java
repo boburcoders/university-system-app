@@ -1,8 +1,8 @@
 package com.company.student.app.service.mapper;
 
-import com.company.student.app.dto.AddressRequest;
-import com.company.student.app.dto.AddressResponseDto;
-import com.company.student.app.dto.AddressUpdateDto;
+import com.company.student.app.dto.address.AddressRequest;
+import com.company.student.app.dto.address.AddressResponseDto;
+import com.company.student.app.dto.address.AddressUpdateDto;
 import com.company.student.app.model.Address;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;

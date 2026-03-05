@@ -1,0 +1,19 @@
+package com.company.student.app.dto.lesson;
+
+import lombok.*;
+
+import java.util.List;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class LessonMaterialResponse {
+    private Long id;
+    private String title;
+    private String description;
+    private List<String> fileName;
+
+
+}

@@ -1,7 +1,7 @@
 package com.company.student.app.service.impl;
 
 import com.company.student.app.config.storage.MinioService;
-import com.company.student.app.dto.HttpApiResponse;
+import com.company.student.app.dto.response.HttpApiResponse;
 import com.company.student.app.service.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;

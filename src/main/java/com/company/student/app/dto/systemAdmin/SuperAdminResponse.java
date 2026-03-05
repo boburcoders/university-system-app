@@ -1,0 +1,23 @@
+package com.company.student.app.dto.systemAdmin;
+
+import com.company.student.app.dto.address.AddressResponseDto;
+import lombok.*;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class SuperAdminResponse {
+    private Long id;
+    private String firstName;
+    private String lastName;
+    private String middleName;
+    private String email;
+    private String phoneNumber;
+    private String logoName;
+    private String username;
+    private String role;
+    private AddressResponseDto addressResponseDto;
+
+}

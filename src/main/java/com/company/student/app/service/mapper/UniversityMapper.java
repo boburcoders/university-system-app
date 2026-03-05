@@ -1,9 +1,9 @@
 package com.company.student.app.service.mapper;
 
-import com.company.student.app.dto.UniversityCreateRequestDto;
-import com.company.student.app.dto.UniversityResponse;
-import com.company.student.app.dto.UniversityShortResponse;
-import com.company.student.app.dto.UniversityUpdateRequest;
+import com.company.student.app.dto.univerAdmin.UniversityCreateRequestDto;
+import com.company.student.app.dto.university.UniversityResponse;
+import com.company.student.app.dto.university.UniversityShortResponse;
+import com.company.student.app.dto.university.UniversityUpdateRequest;
 import com.company.student.app.model.University;
 import org.mapstruct.*;
 

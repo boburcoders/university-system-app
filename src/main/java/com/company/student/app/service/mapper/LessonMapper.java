@@ -1,7 +1,7 @@
 package com.company.student.app.service.mapper;
 
-import com.company.student.app.dto.LessonCreateRequest;
-import com.company.student.app.dto.LessonResponse;
+import com.company.student.app.dto.lesson.LessonCreateRequest;
+import com.company.student.app.dto.lesson.LessonResponse;
 import com.company.student.app.model.Lesson;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

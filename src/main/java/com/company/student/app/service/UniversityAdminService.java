@@ -1,9 +1,29 @@
 package com.company.student.app.service;
 
-import com.company.student.app.dto.*;
+import com.company.student.app.dto.course.CourseAssignmentRequest;
+import com.company.student.app.dto.course.CourseRequestDto;
+import com.company.student.app.dto.course.CourseResponseDto;
+import com.company.student.app.dto.department.DepartmentRequestDto;
+import com.company.student.app.dto.department.DepartmentResponse;
+import com.company.student.app.dto.department.DepartmentUpdateRequest;
+import com.company.student.app.dto.faculty.FacultyRequestDto;
+import com.company.student.app.dto.faculty.FacultyResponse;
+import com.company.student.app.dto.faculty.FacultyUpdateRequest;
+import com.company.student.app.dto.group.GroupRequestDto;
+import com.company.student.app.dto.group.GroupResponse;
+import com.company.student.app.dto.response.HttpApiResponse;
+import com.company.student.app.dto.response.UserMeResponse;
+import com.company.student.app.dto.student.StudentCreateRequest;
+import com.company.student.app.dto.student.StudentShortResponse;
+import com.company.student.app.dto.teacher.TeacherCreateRequest;
+import com.company.student.app.dto.teacher.TeacherShortResponseDto;
+import com.company.student.app.dto.timetable.TimeTableRequest;
+import com.company.student.app.dto.univerAdmin.StatisticResponse;
+import com.company.student.app.dto.univerAdmin.UniversityAdminProfileResponse;
+import com.company.student.app.dto.univerAdmin.UniversityAdminUpdateRequest;
+import com.company.student.app.dto.university.UniversityUpdateRequest;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -51,7 +71,7 @@ public interface UniversityAdminService {
 
     HttpApiResponse<Boolean> updateDepartment(DepartmentUpdateRequest request, Long departmentId);
 
-    HttpApiResponse<Boolean> updateFaculty(FacultyUpdateRequest request,Long facultyId);
+    HttpApiResponse<Boolean> updateFaculty(FacultyUpdateRequest request, Long facultyId);
 
     HttpApiResponse<Boolean> removeStudent(Long studentId);
 

@@ -1,8 +1,8 @@
 package com.company.student.app.service.mapper;
 
-import com.company.student.app.dto.DepartmentRequestDto;
-import com.company.student.app.dto.DepartmentResponse;
-import com.company.student.app.dto.DepartmentUpdateRequest;
+import com.company.student.app.dto.department.DepartmentRequestDto;
+import com.company.student.app.dto.department.DepartmentResponse;
+import com.company.student.app.dto.department.DepartmentUpdateRequest;
 import com.company.student.app.model.Department;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
