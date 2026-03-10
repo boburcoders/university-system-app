@@ -82,6 +82,10 @@ public class SwaggerDocs {
                 GroupedOpenApi.builder()
                         .group("address")
                         .pathsToMatch("/api/address/**")
+                        .build(),
+                GroupedOpenApi.builder()
+                        .group("2fa")
+                        .pathsToMatch("/api/2fa/**")
                         .build()
         );
     }
