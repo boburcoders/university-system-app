@@ -17,9 +17,10 @@ public class CorsConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         configuration.setAllowedOriginPatterns(Arrays.asList(
-                "http://localhost:5173",
                 "http://localhost:3000",
-                "http://127.0.0.1:5500"
+                "https://student-system.uz",
+                "https://www.student-system.uz",
+                "https://api.student-system.uz"
         ));
 
         // Ruxsat etilgan metodlar

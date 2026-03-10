@@ -37,7 +37,10 @@ public class SwaggerDocs {
                                 .description("Local Server"),
                         new Server()
                                 .url("http://localhost:8001")
-                                .description("Test Server")
+                                .description("Test Server"),
+                        new Server()
+                                .url("https://api.student-system.uz")
+                                .description("Prod Server")
                 ))
                 .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
                 .components(new Components()
