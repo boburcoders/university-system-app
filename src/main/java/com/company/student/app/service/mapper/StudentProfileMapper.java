@@ -16,6 +16,7 @@ public abstract class StudentProfileMapper {
     public abstract StudentAttendanceResponse mapToStudentAttendanceResponse(StudentProfile profile);
 
     @Mapping(target = "username", source = "profile.user.username")
+    @Mapping(target = "group", ignore = true)
     public abstract StudentProfileResponse toProfileResponse(StudentProfile profile);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

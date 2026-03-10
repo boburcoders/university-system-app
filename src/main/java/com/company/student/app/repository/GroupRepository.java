@@ -44,4 +44,6 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
              where g.organizationId=:universityId and g.deletedAt is null
             """)
     void softDeleteByUniversity(Long universityId, LocalDateTime now);
+
+    boolean existsByCodeAndOrganizationIdAndIdNot(String code, Long organizationId, Long id);
 }

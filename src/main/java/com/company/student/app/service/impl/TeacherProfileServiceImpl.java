@@ -5,12 +5,10 @@ import com.company.student.app.config.security.UserSession;
 import com.company.student.app.dto.attedance.AttendanceRequestDto;
 import com.company.student.app.dto.course.CourseResponseDto;
 import com.company.student.app.dto.group.GroupResponse;
-import com.company.student.app.dto.lesson.LessonCreateRequest;
-import com.company.student.app.dto.lesson.LessonMaterialRequest;
-import com.company.student.app.dto.lesson.LessonMaterialResponse;
-import com.company.student.app.dto.lesson.LessonResponse;
+import com.company.student.app.dto.lesson.*;
 import com.company.student.app.dto.response.HttpApiResponse;
 import com.company.student.app.dto.response.UserMeResponse;
+import com.company.student.app.dto.room.RoomResponseDto;
 import com.company.student.app.dto.student.StudentAttendanceResponse;
 import com.company.student.app.dto.teacher.TeacherProfileResponse;
 import com.company.student.app.dto.teacher.TeacherUpdateRequest;
@@ -32,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
@@ -57,6 +56,8 @@ public class TeacherProfileServiceImpl implements TeacherProfileService {
     private final UniversityUserRoleRepository userRoleRepository;
     private final AttendanceRepository attendanceRepository;
     private final AddressMapper addressMapper;
+    private final RoomRepository roomRepository;
+    private final RoomMapper roomMapper;
 
 
     @Override
@@ -101,42 +102,45 @@ public class TeacherProfileServiceImpl implements TeacherProfileService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
     @Override
     public HttpApiResponse<List<TimeTableResponse>> getTimeTable(
             Long teacherId,
-            Long groupId
+            Long groupId,
+            Long roomId
     ) {
         Long universityId = userSession.universityId();
 
-        if (teacherId == null && groupId == null) {
-            throw new IllegalArgumentException("teacherId yoki groupId berilishi kerak");
-        }
+        validateOnlyOneFilter(teacherId, groupId, roomId);
 
-        if (teacherId != null && groupId != null) {
-            throw new IllegalArgumentException("Faqat bittasi berilishi mumkin: teacherId yoki groupId");
-        }
-
-        List<TimeTable> timeTables;
-
-        if (teacherId != null) {
-            timeTables = timeTableRepository
-                    .findAllByOrganizationIdAndTeacherIdAndDeletedAtIsNull(
-                            universityId, teacherId);
-        } else {
-            timeTables = timeTableRepository
-                    .findAllByOrganizationIdAndGroupIdAndDeletedAtIsNull(
-                            universityId, groupId);
-        }
-
-        List<TimeTableResponse> responseList =
-                timeTableMapper.mapToResponseList(timeTables);
+        List<TimeTable> timeTables =
+                teacherId != null
+                        ? timeTableRepository.findAllByOrganizationIdAndTeacherIdAndDeletedAtIsNull(universityId, teacherId)
+                        : groupId != null
+                        ? timeTableRepository.findAllByOrganizationIdAndGroupIdAndDeletedAtIsNull(universityId, groupId)
+                        : timeTableRepository.findAllByOrganizationIdAndRoomIdAndDeletedAtIsNull(universityId, roomId);
 
         return HttpApiResponse.<List<TimeTableResponse>>builder()
                 .success(true)
                 .status(200)
                 .message("ok")
-                .data(responseList)
+                .data(timeTableMapper.mapToResponseList(timeTables))
                 .build();
+    }
+
+    private void validateOnlyOneFilter(Long teacherId, Long groupId, Long roomId) {
+        int count = 0;
+        if (teacherId != null) count++;
+        if (groupId != null) count++;
+        if (roomId != null) count++;
+
+        if (count == 0) {
+            throw new IllegalArgumentException("teacherId, groupId yoki roomId dan bittasi berilishi kerak");
+        }
+
+        if (count > 1) {
+            throw new IllegalArgumentException("Faqat bittasi berilishi mumkin: teacherId, groupId yoki roomId");
+        }
     }
 
     @Override
@@ -191,6 +195,20 @@ public class TeacherProfileServiceImpl implements TeacherProfileService {
                 .status(201)
                 .message("ok")
                 .data(true)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public HttpApiResponse<Page<LessonResponse>> getTeacherLessons(Pageable pageable) {
+        TeacherProfile currentTeacher = getCurrentTeacher();
+        Page<LessonResponse> allByTeacherId = lessonRepository.findAllByTeacherId(currentTeacher.getId(), userSession.universityId(), pageable);
+
+        return HttpApiResponse.<Page<LessonResponse>>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(allByTeacherId)
                 .build();
     }
 
@@ -258,6 +276,20 @@ public class TeacherProfileServiceImpl implements TeacherProfileService {
                 .data(teacherGroups.map(groupMapper::mapToResponse))
                 .build();
 
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public HttpApiResponse<Page<RoomResponseDto>> getAllRoomInUniversity(Pageable pageable) {
+        Page<Room> allByOrganizationId = roomRepository.findAllByOrganizationIdAndDeletedAtIsNull(userSession.universityId(), pageable);
+        Page<RoomResponseDto> map = allByOrganizationId.map(roomMapper::mapToRoomResponse);
+
+        return HttpApiResponse.<Page<RoomResponseDto>>builder()
+                .status(200)
+                .success(true)
+                .message("ok")
+                .data(map)
+                .build();
     }
 
     @Override
@@ -356,15 +388,30 @@ public class TeacherProfileServiceImpl implements TeacherProfileService {
     @Override
     @Transactional
     public HttpApiResponse<Boolean> updateProfile(TeacherUpdateRequest request) {
-        Long universityId = userSession.universityId();
 
+        Long universityId = userSession.universityId();
         TeacherProfile profile = getCurrentTeacher();
 
         if (request.getUsername() != null) {
-            if (authUserRepository.existsByUsernameAndOrganizationIdAndDeletedAtIsNull(request.getUsername(), universityId)) {
-                throw new IllegalArgumentException("username.already.exist");
+
+            String newUsername = request.getUsername().trim().toLowerCase();
+            String currentUsername = profile.getUser().getUsername();
+
+            if (!newUsername.equalsIgnoreCase(currentUsername)) {
+
+                boolean exists = authUserRepository
+                        .existsByUsernameIgnoreCaseAndOrganizationIdAndDeletedAtIsNullAndIdNot(
+                                newUsername,
+                                universityId,
+                                profile.getUser().getId()
+                        );
+
+                if (exists) {
+                    throw new IllegalArgumentException("username.already.exist");
+                }
+
+                profile.getUser().setUsername(newUsername);
             }
-            profile.getUser().setUsername(request.getUsername());
         }
 
         teacherProfileMapper.updateEntity(profile, request);
@@ -379,9 +426,64 @@ public class TeacherProfileServiceImpl implements TeacherProfileService {
 
     @Override
     @Transactional
+    public HttpApiResponse<Boolean> updateLessonMaterials(
+            Long materialId,
+            LessonMaterialUpdateRequest request,
+            List<String> fileNames
+    ) {
+        Long universityId = userSession.universityId();
+
+        LessonMaterial lessonMaterial = lessonMaterialRepository
+                .findByIdAndOrganizationId(materialId, universityId)
+                .orElseThrow(() -> new EntityNotFoundException("material.not.found"));
+
+        lessonMaterialMapper.updateMaterial(lessonMaterial, request);
+
+        if (fileNames != null) {
+            List<String> updatedFileNames = fileNames.stream()
+                    .filter(Objects::nonNull)
+                    .map(String::trim)
+                    .filter(name -> !name.isBlank())
+                    .distinct()
+                    .collect(Collectors.toCollection(ArrayList::new)); // mutable
+
+            lessonMaterial.setFileName(updatedFileNames);
+        }
+
+        // no need to call save() here if entity is managed in @Transactional
+        // lessonMaterialRepository.save(lessonMaterial);
+
+        return HttpApiResponse.<Boolean>builder()
+                .success(true)
+                .status(200)
+                .message("material.updated")
+                .data(true)
+                .build();
+    }
+
+
+    @Transactional
+    @Override
+    public HttpApiResponse<Boolean> updateLesson(Long lessonId, LessonUpdateRequest request) {
+        Lesson lesson = lessonRepository.findByIdAndOrganizationIdAndDeletedAtIsNull(lessonId, userSession.universityId())
+                .orElseThrow(() -> new EntityNotFoundException("lesson.not.found"));
+
+        lessonMapper.updateEntity(lesson, request);
+
+        return HttpApiResponse.<Boolean>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(true)
+                .build();
+    }
+
+    @Override
+    @Transactional
     public HttpApiResponse<Boolean> updatePassword(String oldPassword, String newPassword) {
         Long userId = userSession.userId();
-        AuthUser authUser = authUserRepository.findByIdAndDeletedAtIsNull(userId)
+        Long universityId = userSession.universityId();
+        AuthUser authUser = authUserRepository.findByIdAndDeletedAtIsNull(userId,universityId)
                 .orElseThrow(() -> new EntityNotFoundException("user.not.found"));
 
         if (!passwordEncoder.matches(oldPassword, authUser.getPassword()))
@@ -395,6 +497,7 @@ public class TeacherProfileServiceImpl implements TeacherProfileService {
                 .data(true)
                 .build();
     }
+
 
     private TeacherProfile getCurrentTeacher() {
         Long userId = userSession.userId();

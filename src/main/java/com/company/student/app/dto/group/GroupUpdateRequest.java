@@ -7,9 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class GroupResponse {
-    private Long id;
+public class GroupUpdateRequest {
     private String name;
     private String code;
-    private String facultyName;
 }

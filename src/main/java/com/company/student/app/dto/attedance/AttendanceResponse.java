@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Builder
 public class AttendanceResponse {
     private String courseName;
+    private String lessonTitle;
     private AttendanceStatus status;
     private String note;
     private LocalDateTime takenDateTime;

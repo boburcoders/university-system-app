@@ -3,6 +3,7 @@ package com.company.student.app.controller;
 import com.company.student.app.dto.auth.TokeRequestDto;
 import com.company.student.app.dto.auth.TokenResponseDto;
 import com.company.student.app.dto.response.HttpApiResponse;
+import com.company.student.app.dto.twoFA.VerifyTwoFactorRequest;
 import com.company.student.app.dto.university.UniversityShortResponse;
 import com.company.student.app.service.AuthService;
 import jakarta.validation.Valid;
@@ -21,6 +22,14 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<HttpApiResponse<TokenResponseDto>> login(@RequestBody @Valid TokeRequestDto dto) {
         HttpApiResponse<TokenResponseDto> response = authService.login(dto);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @PostMapping("/verify-2fa")
+    public ResponseEntity<HttpApiResponse<TokenResponseDto>> verifyTwoFactor(
+            @RequestBody @Valid VerifyTwoFactorRequest dto
+    ) {
+        HttpApiResponse<TokenResponseDto> response = authService.verifyTwoFactor(dto);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 

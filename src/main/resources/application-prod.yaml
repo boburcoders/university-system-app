@@ -24,6 +24,10 @@ minio:
   access-key: ${MINIO_USERNAME}
   secret-key: ${MINIO_PASSWORD}
   bucket: ${MINIO_BUCKET}
+app:
+  security:
+    2fa:
+      secret-key: ${MFA_SECRET_KEY}
 
 #    prod da false bolish kk test uchun true
 springdoc:

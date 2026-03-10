@@ -2,10 +2,10 @@ package com.company.student.app.service.impl;
 
 import com.company.student.app.config.security.TenantContext;
 import com.company.student.app.config.security.UserSession;
-import com.company.student.app.dto.address.AddressResponseDto;
 import com.company.student.app.dto.course.CourseAssignmentRequest;
 import com.company.student.app.dto.course.CourseRequestDto;
 import com.company.student.app.dto.course.CourseResponseDto;
+import com.company.student.app.dto.course.CourseUpdateRequest;
 import com.company.student.app.dto.department.DepartmentRequestDto;
 import com.company.student.app.dto.department.DepartmentResponse;
 import com.company.student.app.dto.department.DepartmentUpdateRequest;
@@ -14,13 +14,18 @@ import com.company.student.app.dto.faculty.FacultyResponse;
 import com.company.student.app.dto.faculty.FacultyUpdateRequest;
 import com.company.student.app.dto.group.GroupRequestDto;
 import com.company.student.app.dto.group.GroupResponse;
+import com.company.student.app.dto.group.GroupUpdateRequest;
 import com.company.student.app.dto.response.HttpApiResponse;
 import com.company.student.app.dto.response.UserMeResponse;
+import com.company.student.app.dto.room.RoomRequestDto;
+import com.company.student.app.dto.room.RoomResponseDto;
+import com.company.student.app.dto.room.RoomUpdateDto;
 import com.company.student.app.dto.student.StudentCreateRequest;
 import com.company.student.app.dto.student.StudentShortResponse;
 import com.company.student.app.dto.teacher.TeacherCreateRequest;
 import com.company.student.app.dto.teacher.TeacherShortResponseDto;
 import com.company.student.app.dto.timetable.TimeTableRequest;
+import com.company.student.app.dto.timetable.TimeTableResponse;
 import com.company.student.app.dto.univerAdmin.StatisticResponse;
 import com.company.student.app.dto.univerAdmin.UniversityAdminProfileResponse;
 import com.company.student.app.dto.univerAdmin.UniversityAdminUpdateRequest;
@@ -79,6 +84,9 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
     private final TimeTableRepository timeTableRepository;
     private final CourseAssignmentRepository courseAssignmentRepository;
     private final AddressMapper addressMapper;
+    private final RoomRepository roomRepository;
+    private final RoomMapper roomMapper;
+    private final TimeTableMapper timeTableMapper;
 
 
     @Override
@@ -348,6 +356,54 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
         }
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public HttpApiResponse<List<TimeTableResponse>> getTimeTable(
+            Long teacherId,
+            Long groupId,
+            Long roomId
+    ) {
+        Long universityId = userSession.universityId();
+
+        if (teacherId == null & groupId == null & roomId == null) {
+            return HttpApiResponse.<List<TimeTableResponse>>builder()
+                    .success(true)
+                    .status(200)
+                    .message("ok")
+                    .build();
+        }
+        validateOnlyOneFilter(teacherId, groupId, roomId);
+
+        List<TimeTable> timeTables =
+                teacherId != null
+                        ? timeTableRepository.findAllByOrganizationIdAndTeacherIdAndDeletedAtIsNull(universityId, teacherId)
+                        : groupId != null
+                        ? timeTableRepository.findAllByOrganizationIdAndGroupIdAndDeletedAtIsNull(universityId, groupId)
+                        : timeTableRepository.findAllByOrganizationIdAndRoomIdAndDeletedAtIsNull(universityId, roomId);
+
+        return HttpApiResponse.<List<TimeTableResponse>>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(timeTableMapper.mapToResponseList(timeTables))
+                .build();
+    }
+
+    private void validateOnlyOneFilter(Long teacherId, Long groupId, Long roomId) {
+        int count = 0;
+        if (teacherId != null) count++;
+        if (groupId != null) count++;
+        if (roomId != null) count++;
+
+        if (count == 0) {
+            throw new IllegalArgumentException("teacherId, groupId yoki roomId dan bittasi berilishi kerak");
+        }
+
+        if (count > 1) {
+            throw new IllegalArgumentException("Faqat bittasi berilishi mumkin: teacherId, groupId yoki roomId");
+        }
+    }
+
     @Override
     @Transactional(readOnly = true)
     public HttpApiResponse<Page<TeacherShortResponseDto>> getAllTeacherInUniversity(Pageable pageable) {
@@ -493,6 +549,7 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
         Long groupId = request.getGroupId();
         Long courseId = request.getCourseId();
         Long teacherId = request.getTeacherId();
+        Long roomId = request.getRoomId();
 
         Group group = groupRepository.findByIdAndOrganizationId(groupId, universityId)
                 .orElseThrow(() -> new EntityNotFoundException("group.not.found"));
@@ -503,12 +560,16 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
         TeacherProfile profile = teacherProfileRepository.findByIdAndOrganizationIdAndDeletedAtIsNull(teacherId, universityId)
                 .orElseThrow(() -> new EntityNotFoundException("teacher.not.found"));
 
+        Room room = roomRepository.findByIdAndOrgId(roomId, universityId)
+                .orElseThrow(() -> new EntityNotFoundException("room.not.found"));
+
         TimeTable timeTable = TimeTable.builder()
                 .group(group)
                 .course(course)
                 .teacher(profile)
                 .endTime(request.getEndTime())
                 .organizationId(universityId)
+                .room(room)
                 .dayOfWeek(request.getDayOfWeek())
                 .startTime(request.getStartTime())
                 .build();
@@ -728,7 +789,7 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
     @Override
     public HttpApiResponse<Boolean> updatePassword(String oldPassword, String newPassword) {
 
-        AuthUser authUser = authUserRepository.findByIdAndDeletedAtIsNull(userSession.userId())
+        AuthUser authUser = authUserRepository.findByIdAndDeletedAtIsNull(userSession.userId(),userSession.universityId())
                 .orElseThrow(() -> new EntityNotFoundException("user.not.found"));
 
         if (!passwordEncoder.matches(oldPassword, authUser.getPassword())) {
@@ -744,6 +805,48 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
                 .build();
     }
 
+    @Transactional
+    @Override
+    public HttpApiResponse<Boolean> updateGroup(Long groupId, GroupUpdateRequest request) {
+        Group group = groupRepository.findByIdAndOrganizationId(groupId, userSession.universityId())
+                .orElseThrow(() -> new EntityNotFoundException("group.not.found"));
+        if (request.getCode() != null) {
+            boolean exists = groupRepository.existsByCodeAndOrganizationIdAndIdNot(request.getCode(), userSession.universityId(), groupId);
+            if (exists) {
+                throw new IllegalArgumentException("group.code.already.exists");
+            }
+        }
+        groupMapper.updateEntity(group, request);
+
+        return HttpApiResponse.<Boolean>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(true)
+                .build();
+    }
+
+    @Transactional
+    @Override
+    public HttpApiResponse<Boolean> updateCourse(Long courseId, CourseUpdateRequest request) {
+        Course course = courseRepository.findByIdAndOrganisationId(courseId, userSession.universityId())
+                .orElseThrow(() -> new EntityNotFoundException("course.not.fount"));
+        if (request.getCode() != null) {
+            boolean exists = courseRepository.existsByCodeAndOrganizationIdAndIdNotAndDeletedAtIsNull(request.getCode(), userSession.universityId(), courseId);
+            if (exists) {
+                throw new IllegalArgumentException("code.already.exists");
+            }
+        }
+        courseMapper.updateCourse(course, request);
+
+        return HttpApiResponse.<Boolean>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(true)
+                .build();
+    }
+
     private UniversityAdminProfile getCurrentUniversityAdmin() {
         return universityAdminProfileRepository.findByUserIdAndDeletedIsNull(userSession.userId(), userSession.universityId())
                 .orElseThrow(() -> new EntityNotFoundException("user.not.found"));
@@ -755,7 +858,7 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
         Department department = departmentRepository.findByIdAndOrganisationId(departmentId, userSession.universityId())
                 .orElseThrow(() -> new EntityNotFoundException("department.not.found"));
         if (request.getName() != null) {
-            if (departmentRepository.existsByNameAndOrganizationIdAndDeletedAtIsNull(request.getName(), userSession.universityId())) {
+            if (departmentRepository.existsByNameAndOrganizationIdAndDeletedAtIsNullAndIdNot(request.getName(), userSession.universityId(), departmentId)) {
                 throw new IllegalArgumentException("name.already.exists");
             }
         }
@@ -897,6 +1000,64 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
                 .success(true)
                 .status(200)
                 .message("group.deleted")
+                .data(true)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public HttpApiResponse<Page<RoomResponseDto>> getAllRoomInUniversity(Pageable pageable) {
+        Page<Room> allByOrganizationId = roomRepository.findAllByOrganizationIdAndDeletedAtIsNull(userSession.universityId(), pageable);
+        Page<RoomResponseDto> map = allByOrganizationId.map(roomMapper::mapToRoomResponse);
+
+        return HttpApiResponse.<Page<RoomResponseDto>>builder()
+                .status(200)
+                .success(true)
+                .message("ok")
+                .data(map)
+                .build();
+    }
+
+    @Transactional
+    @Override
+    public HttpApiResponse<Boolean> createRoom(RoomRequestDto request) {
+        Room room = roomMapper.mapToEntity(request);
+        room.setOrganizationId(userSession.universityId());
+        roomRepository.save(room);
+        return HttpApiResponse.<Boolean>builder()
+                .success(true)
+                .status(201)
+                .message("ok")
+                .data(true)
+                .build();
+    }
+
+    @Transactional
+    @Override
+    public HttpApiResponse<Boolean> updateRoom(Long roomId, RoomUpdateDto dto) {
+        Room room = roomRepository.findByIdAndOrgId(roomId, userSession.universityId())
+                .orElseThrow(() -> new EntityNotFoundException("room.not.found"));
+        roomMapper.updateRoom(room, dto);
+
+        return HttpApiResponse.<Boolean>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(true)
+                .build();
+    }
+
+    @Transactional
+    @Override
+    public HttpApiResponse<Boolean> deleteRoom(Long roomId) {
+        Room room = roomRepository.findByIdAndOrgId(roomId, userSession.universityId())
+                .orElseThrow(() -> new EntityNotFoundException("room.not.found"));
+        room.setDeletedAt(LocalDateTime.now());
+
+        return HttpApiResponse.<Boolean>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
                 .data(true)
                 .build();
     }

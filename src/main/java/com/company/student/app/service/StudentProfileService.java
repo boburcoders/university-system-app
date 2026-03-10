@@ -17,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public interface StudentProfileService {
@@ -24,7 +25,7 @@ public interface StudentProfileService {
 
     HttpApiResponse<Page<CourseResponseDto>> getStudentCourses(Pageable pageable);
 
-    HttpApiResponse<Page<AttendanceResponse>> getStudentAttendances(Pageable pageable, Long lessonId, Long courseId);
+    HttpApiResponse<Page<AttendanceResponse>> getStudentAttendances(Pageable pageable, Long courseId);
 
     HttpApiResponse<Boolean> updateProfile(StudentProfileUpdateRequest request);
 
@@ -41,4 +42,6 @@ public interface StudentProfileService {
     HttpApiResponse<List<TeacherResponse>> getAllTeacher();
 
     HttpApiResponse<List<LessonMaterialResponse>> getLessonMaterials(Long lessonId);
+
+    HttpApiResponse<Map<String, Long>> getStudentStatistics();
 }

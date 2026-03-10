@@ -1,6 +1,9 @@
 package com.company.student.app.config.security;
 
+import com.company.student.app.model.AuthUser;
 import com.company.student.app.model.TeacherProfile;
+import com.company.student.app.repository.AuthUserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -9,6 +12,12 @@ import java.util.Objects;
 
 @Component
 public class UserSession {
+    private final AuthUserRepository authUserRepository;
+
+    public UserSession(AuthUserRepository authUserRepository) {
+        this.authUserRepository = authUserRepository;
+    }
+
     private UserPrincipal getPrincipal() {
         Authentication auth = SecurityContextHolder
                 .getContext()
@@ -57,5 +66,12 @@ public class UserSession {
         return getPrincipal().getAuthorities()
                 .stream()
                 .anyMatch(a -> Objects.equals(a.getAuthority(), "ROLE_UNIVERSITY_ADMIN"));
+    }
+
+    public AuthUser getCurrentUser() {
+        Long userId = getPrincipal().getUserId();
+        Long organisationId = getPrincipal().getOrganisationId();
+        return authUserRepository.findByIdAndDeletedAtIsNull(userId,organisationId).
+                orElseThrow(() -> new EntityNotFoundException("user.not.found"));
     }
 }

@@ -21,7 +21,6 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,6 +28,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -94,8 +94,12 @@ public class StudentProfileServiceImpl implements StudentProfileService {
 
         StudentProfileResponse response = studentProfileMapper.toProfileResponse(profile);
         Address address = profile.getUser().getAddress();
+        Group group = profile.getGroup();
+
         if (address != null)
             response.setAddress(addressMapper.mapToResponse(address));
+        if (group != null)
+            response.setGroup(groupMapper.mapToResponse(group));
         return HttpApiResponse.<StudentProfileResponse>builder()
                 .success(true)
                 .status(200)
@@ -153,34 +157,7 @@ public class StudentProfileServiceImpl implements StudentProfileService {
     @Transactional(readOnly = true)
     @Override
     public HttpApiResponse<Page<AttendanceResponse>> getStudentAttendances(
-            Pageable pageable, Long lessonId, Long courseId) {
-
-        if (lessonId == null && courseId == null) {
-            throw new IllegalArgumentException("courseId.or.lessonId.must.be.given");
-        }
-
-        if (lessonId != null) {
-            Attendance attendance = attendanceRepository
-                    .findByLessonIdAndStudentIdAndOrganizationId(
-                            lessonId,
-                            getCurrentStudent().getId(),
-                            userSession.universityId())
-                    .orElseThrow(() -> new EntityNotFoundException("attendance.not.found"));
-
-            AttendanceResponse response = attendanceMapper.mapToAttendanceResponse(attendance);
-
-            Page<AttendanceResponse> page =
-                    new PageImpl<>(List.of(response), pageable, 1);
-
-            return HttpApiResponse.<Page<AttendanceResponse>>builder()
-                    .success(true)
-                    .status(200)
-                    .message("ok")
-                    .data(page)
-                    .build();
-        }
-
-        // courseId bo‘yicha list qaytarish
+            Pageable pageable, Long courseId) {
         Page<Attendance> attendances =
                 attendanceRepository.findAllByCourseIdAndStudentIdAndOrganizationId(
                         courseId,
@@ -196,6 +173,27 @@ public class StudentProfileServiceImpl implements StudentProfileService {
                 .status(200)
                 .message("ok")
                 .data(responsePage)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public HttpApiResponse<Map<String, Long>> getStudentStatistics() {
+        Long studentId = getCurrentStudent().getId();
+        Long universityId = userSession.universityId();
+        Long attendanceCount = attendanceRepository.findAllByStudentId(studentId, universityId);
+        Long lessonCount = lessonRepository.findAllStudentLesson(studentId, universityId);
+        Long courseCount = courseRepository.findAllStudentCourseCount(studentId, universityId);
+        Map<String, Long> map = Map.of(
+                "attendanceCount", attendanceCount,
+                "lessonCount", lessonCount,
+                "courseCount", courseCount);
+
+        return HttpApiResponse.<Map<String, Long>>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(map)
                 .build();
     }
 
@@ -280,7 +278,7 @@ public class StudentProfileServiceImpl implements StudentProfileService {
     @Override
     @Transactional
     public HttpApiResponse<Boolean> updatePassword(String oldPassword, String newPassword) {
-        AuthUser authUser = authUserRepository.findByIdAndDeletedAtIsNull(userSession.userId())
+        AuthUser authUser = authUserRepository.findByIdAndDeletedAtIsNull(userSession.userId(),userSession.universityId())
                 .orElseThrow(() -> new EntityNotFoundException("user.not.found"));
         if (!passwordEncoder.matches(oldPassword, authUser.getPassword()))
             throw new IllegalArgumentException("password.incorrect");

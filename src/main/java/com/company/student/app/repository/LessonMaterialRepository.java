@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface LessonMaterialRepository extends JpaRepository<LessonMaterial, Long> {
@@ -53,4 +54,7 @@ public interface LessonMaterialRepository extends JpaRepository<LessonMaterial, 
              where lm.organizationId=:universityId and lm.deletedAt is null
             """)
     void softDeleteByUniversity(Long universityId, LocalDateTime now);
+
+    @Query("select lm from LessonMaterial lm where lm.id=:materialId and lm.organizationId=:aLong and lm.deletedAt is null ")
+    Optional<LessonMaterial> findByIdAndOrganizationId(Long materialId, Long aLong);
 }

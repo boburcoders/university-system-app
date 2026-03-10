@@ -97,6 +97,21 @@ public class JwtService {
         );
     }
 
+    public String generateTempToken(String username, Map<String, Object> claims) {
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(username)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 5 * 60 * 1000))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public boolean isTempToken(String token) {
+        Claims claims = extractAllClaims(token);
+        return "MFA_PENDING".equals(claims.get("type"));
+    }
+
     private String buildToken(Map<String, Object> extraClaims, String username, Long expiration) {
         return Jwts.builder()
                 .setIssuer(jwtProperties.getIssuer())
@@ -106,5 +121,17 @@ public class JwtService {
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    public Long extractUserId(String tempToken) {
+        return extractClaim(tempToken, claims ->
+                claims.get("userId", Long.class)
+        );
+    }
+
+    public String extractRole(String tempToken) {
+        return extractClaim(tempToken, claims ->
+                claims.get("role", String.class)
+        );
     }
 }

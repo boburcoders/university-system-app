@@ -16,6 +16,7 @@ public abstract class TeacherProfileMapper {
     @Mapping(target = "username", source = "profile.user.username")
     public abstract TeacherProfileResponse mapToProfileResponse(TeacherProfile profile);
 
+    @Mapping(target = "email", source = "profile.email")
     public abstract TeacherResponse mapToTeacherResponse(TeacherProfile profile);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

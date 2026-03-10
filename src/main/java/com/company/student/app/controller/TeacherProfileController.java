@@ -3,12 +3,10 @@ package com.company.student.app.controller;
 import com.company.student.app.dto.attedance.AttendanceRequestDto;
 import com.company.student.app.dto.course.CourseResponseDto;
 import com.company.student.app.dto.group.GroupResponse;
-import com.company.student.app.dto.lesson.LessonCreateRequest;
-import com.company.student.app.dto.lesson.LessonMaterialRequest;
-import com.company.student.app.dto.lesson.LessonMaterialResponse;
-import com.company.student.app.dto.lesson.LessonResponse;
+import com.company.student.app.dto.lesson.*;
 import com.company.student.app.dto.response.HttpApiResponse;
 import com.company.student.app.dto.response.UserMeResponse;
+import com.company.student.app.dto.room.RoomResponseDto;
 import com.company.student.app.dto.student.StudentAttendanceResponse;
 import com.company.student.app.dto.teacher.TeacherProfileResponse;
 import com.company.student.app.dto.teacher.TeacherUpdateRequest;
@@ -47,9 +45,10 @@ public class TeacherProfileController {
     @GetMapping("/get-time-table")
     public ResponseEntity<HttpApiResponse<List<TimeTableResponse>>> getTimeTable(
             @RequestParam(required = false) Long teacherId,
-            @RequestParam(required = false) Long groupId
+            @RequestParam(required = false) Long groupId,
+            @RequestParam(required = false) Long roomId
     ) {
-        HttpApiResponse<List<TimeTableResponse>> response = teacherProfileService.getTimeTable(teacherId, groupId);
+        HttpApiResponse<List<TimeTableResponse>> response = teacherProfileService.getTimeTable(teacherId, groupId, roomId);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
@@ -75,6 +74,16 @@ public class TeacherProfileController {
     ) {
         HttpApiResponse<Page<CourseResponseDto>> response
                 = teacherProfileService.getTeacherCourses(PageRequest.of(pageNumber, sizeNumber));
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @GetMapping("/get-teacher-lessons")
+    public ResponseEntity<HttpApiResponse<Page<LessonResponse>>> getTeacherLessons(
+            @RequestParam(required = false, defaultValue = "0") Integer pageNumber,
+            @RequestParam(required = false, defaultValue = "10") Integer sizeNumber
+    ) {
+        HttpApiResponse<Page<LessonResponse>> response
+                = teacherProfileService.getTeacherLessons(PageRequest.of(pageNumber, sizeNumber));
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
@@ -105,6 +114,16 @@ public class TeacherProfileController {
     ) {
         HttpApiResponse<Page<GroupResponse>> response
                 = teacherProfileService.getTeacherGroups(PageRequest.of(pageNumber, sizeNumber));
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @GetMapping("/all-rooms")
+    public ResponseEntity<HttpApiResponse<Page<RoomResponseDto>>> getAllRoomInUniversity(
+            @RequestParam(required = false, defaultValue = "0") Integer pageNumber,
+            @RequestParam(required = false, defaultValue = "10") Integer sizeNumber
+    ) {
+        HttpApiResponse<Page<RoomResponseDto>> response
+                = teacherProfileService.getAllRoomInUniversity(PageRequest.of(pageNumber, sizeNumber));
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
@@ -140,6 +159,25 @@ public class TeacherProfileController {
             @RequestParam String newPassword
     ) {
         HttpApiResponse<Boolean> response = teacherProfileService.updatePassword(oldPassword, newPassword);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @PutMapping("/update-lesson/{lessonId}")
+    public ResponseEntity<HttpApiResponse<Boolean>> updateLesson(
+            @PathVariable Long lessonId,
+            @RequestBody LessonUpdateRequest request
+    ) {
+        HttpApiResponse<Boolean> response = teacherProfileService.updateLesson(lessonId, request);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @PutMapping("/update-lesson-materials/{materialId}")
+    public ResponseEntity<HttpApiResponse<Boolean>> updateLessonMaterials(
+            @PathVariable Long materialId,
+            @RequestBody LessonMaterialUpdateRequest request,
+            @RequestParam List<String> fileNames
+    ) {
+        HttpApiResponse<Boolean> response = teacherProfileService.updateLessonMaterials(materialId, request, fileNames);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 

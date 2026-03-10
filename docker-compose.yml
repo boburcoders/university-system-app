@@ -15,7 +15,7 @@ services:
     networks:
       - lms-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -30,7 +30,7 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
     volumes:
       - minio_data:/data
-#    olib tashlash kk prodda
+    #    olib tashlash kk prodda
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -57,6 +57,7 @@ services:
       MINIO_USERNAME: ${MINIO_USERNAME}
       MINIO_PASSWORD: ${MINIO_PASSWORD}
       MINIO_BUCKET: ${MINIO_BUCKET}
+      MFA_SECRET_KEY: ${MFA_SECRET_KEY}
     networks:
       - lms-network
 

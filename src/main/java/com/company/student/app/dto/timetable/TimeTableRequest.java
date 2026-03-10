@@ -16,6 +16,8 @@ public class TimeTableRequest {
     @NotNull
     private Long groupId;
     @NotNull
+    private Long roomId;
+    @NotNull
     private Long courseId;
     @NotNull
     private Long teacherId;

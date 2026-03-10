@@ -3,17 +3,16 @@ package com.company.student.app.service;
 import com.company.student.app.dto.attedance.AttendanceRequestDto;
 import com.company.student.app.dto.course.CourseResponseDto;
 import com.company.student.app.dto.group.GroupResponse;
-import com.company.student.app.dto.lesson.LessonCreateRequest;
-import com.company.student.app.dto.lesson.LessonMaterialRequest;
-import com.company.student.app.dto.lesson.LessonMaterialResponse;
-import com.company.student.app.dto.lesson.LessonResponse;
+import com.company.student.app.dto.lesson.*;
 import com.company.student.app.dto.response.HttpApiResponse;
 import com.company.student.app.dto.response.UserMeResponse;
+import com.company.student.app.dto.room.RoomResponseDto;
 import com.company.student.app.dto.student.StudentAttendanceResponse;
 import com.company.student.app.dto.teacher.TeacherProfileResponse;
 import com.company.student.app.dto.teacher.TeacherUpdateRequest;
 import com.company.student.app.dto.timetable.TimeTableResponse;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -24,7 +23,7 @@ import java.util.List;
 public interface TeacherProfileService {
     HttpApiResponse<TeacherProfileResponse> getTeacherProfile();
 
-    HttpApiResponse<List<TimeTableResponse>> getTimeTable(Long teacherId, Long groupId);
+    HttpApiResponse<List<TimeTableResponse>> getTimeTable(Long teacherId, Long groupId,Long roomId);
 
     HttpApiResponse<Boolean> createLesson(LessonCreateRequest request);
 
@@ -48,4 +47,12 @@ public interface TeacherProfileService {
 
 
     HttpApiResponse<UserMeResponse> getMe(Authentication authentication);
+
+    HttpApiResponse<Page<RoomResponseDto>> getAllRoomInUniversity(Pageable pageable);
+
+    HttpApiResponse<Page<LessonResponse>> getTeacherLessons(Pageable pageable);
+
+    HttpApiResponse<Boolean> updateLessonMaterials(Long materialId, LessonMaterialUpdateRequest request,List<String> fileNames);
+
+    HttpApiResponse<Boolean> updateLesson(Long lessonId, LessonUpdateRequest request);
 }

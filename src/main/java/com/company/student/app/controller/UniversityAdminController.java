@@ -3,6 +3,7 @@ package com.company.student.app.controller;
 import com.company.student.app.dto.course.CourseAssignmentRequest;
 import com.company.student.app.dto.course.CourseRequestDto;
 import com.company.student.app.dto.course.CourseResponseDto;
+import com.company.student.app.dto.course.CourseUpdateRequest;
 import com.company.student.app.dto.department.DepartmentRequestDto;
 import com.company.student.app.dto.department.DepartmentResponse;
 import com.company.student.app.dto.department.DepartmentUpdateRequest;
@@ -11,13 +12,18 @@ import com.company.student.app.dto.faculty.FacultyResponse;
 import com.company.student.app.dto.faculty.FacultyUpdateRequest;
 import com.company.student.app.dto.group.GroupRequestDto;
 import com.company.student.app.dto.group.GroupResponse;
+import com.company.student.app.dto.group.GroupUpdateRequest;
 import com.company.student.app.dto.response.HttpApiResponse;
 import com.company.student.app.dto.response.UserMeResponse;
+import com.company.student.app.dto.room.RoomRequestDto;
+import com.company.student.app.dto.room.RoomResponseDto;
+import com.company.student.app.dto.room.RoomUpdateDto;
 import com.company.student.app.dto.student.StudentCreateRequest;
 import com.company.student.app.dto.student.StudentShortResponse;
 import com.company.student.app.dto.teacher.TeacherCreateRequest;
 import com.company.student.app.dto.teacher.TeacherShortResponseDto;
 import com.company.student.app.dto.timetable.TimeTableRequest;
+import com.company.student.app.dto.timetable.TimeTableResponse;
 import com.company.student.app.dto.univerAdmin.StatisticResponse;
 import com.company.student.app.dto.univerAdmin.UniversityAdminProfileResponse;
 import com.company.student.app.dto.univerAdmin.UniversityAdminUpdateRequest;
@@ -35,12 +41,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/univer-admin")
 @PreAuthorize("hasRole('UNIVERSITY_ADMIN')")
 public class UniversityAdminController {
-    private final UniversityAdminService universityAdminService;
+    private final UniversityAdminService    universityAdminService;
 
     @PostMapping("/teacher")
     public ResponseEntity<HttpApiResponse<Long>> createTeacher(@RequestBody @Valid TeacherCreateRequest request) {
@@ -54,7 +62,7 @@ public class UniversityAdminController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @PostMapping(value = "/student-by-excel",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/student-by-excel", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<HttpApiResponse<Boolean>> createStudentByExcelFile(@RequestParam MultipartFile file) {
         HttpApiResponse<Boolean> response = universityAdminService.createStudentByExcelFile(file);
         return ResponseEntity.status(response.getStatus()).body(response);
@@ -72,7 +80,7 @@ public class UniversityAdminController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @PostMapping(value = "/course-assigment")
+    @PostMapping(value = "/course-assignment")
     public ResponseEntity<HttpApiResponse<Boolean>> createCourseAssigment(@RequestBody @Valid CourseAssignmentRequest request) {
         HttpApiResponse<Boolean> response = universityAdminService.createCourseAssigment(request);
         return ResponseEntity.status(response.getStatus()).body(response);
@@ -102,6 +110,12 @@ public class UniversityAdminController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
+    @PostMapping(value = "/room")
+    public ResponseEntity<HttpApiResponse<Boolean>> createRoom(@RequestBody @Valid RoomRequestDto request) {
+        HttpApiResponse<Boolean> response = universityAdminService.createRoom(request);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
     @GetMapping("/me")
     public ResponseEntity<HttpApiResponse<UserMeResponse>> getCurrentUser(Authentication authentication) {
         HttpApiResponse<UserMeResponse> response = universityAdminService.getMe(authentication);
@@ -125,6 +139,16 @@ public class UniversityAdminController {
     @GetMapping("/statistics")
     public ResponseEntity<HttpApiResponse<StatisticResponse>> getStatisticsDashboard() {
         HttpApiResponse<StatisticResponse> response = universityAdminService.getStatisticsDashboard();
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @GetMapping("/get-time-table")
+    public ResponseEntity<HttpApiResponse<List<TimeTableResponse>>> getTimeTable(
+            @RequestParam(required = false) Long teacherId,
+            @RequestParam(required = false) Long groupId,
+            @RequestParam(required = false) Long roomId
+    ) {
+        HttpApiResponse<List<TimeTableResponse>> response = universityAdminService.getTimeTable(teacherId, groupId,roomId);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
@@ -165,6 +189,16 @@ public class UniversityAdminController {
     ) {
         HttpApiResponse<Page<GroupResponse>> response
                 = universityAdminService.getAllGroupsInUniversity(PageRequest.of(pageNumber, sizeNumber));
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @GetMapping("/all-rooms")
+    public ResponseEntity<HttpApiResponse<Page<RoomResponseDto>>> getAllRoomInUniversity(
+            @RequestParam(required = false, defaultValue = "0") Integer pageNumber,
+            @RequestParam(required = false, defaultValue = "10") Integer sizeNumber
+    ) {
+        HttpApiResponse<Page<RoomResponseDto>> response
+                = universityAdminService.getAllRoomInUniversity(PageRequest.of(pageNumber, sizeNumber));
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
@@ -222,6 +256,40 @@ public class UniversityAdminController {
             @RequestParam String newPassword
     ) {
         HttpApiResponse<Boolean> response = universityAdminService.updatePassword(oldPassword, newPassword);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @PutMapping("/course/{courseId}")
+    public ResponseEntity<HttpApiResponse<Boolean>> updateCourse(
+            @PathVariable Long courseId,
+            @RequestBody CourseUpdateRequest request
+    ) {
+        HttpApiResponse<Boolean> response = universityAdminService.updateCourse(courseId, request);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @PutMapping("/group/{groupId}")
+    public ResponseEntity<HttpApiResponse<Boolean>> updateGroup(
+            @PathVariable Long groupId,
+            @RequestBody GroupUpdateRequest request
+    ) {
+        HttpApiResponse<Boolean> response = universityAdminService.updateGroup(groupId, request);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+    @PutMapping("/room/{roomId}")
+    public ResponseEntity<HttpApiResponse<Boolean>> updateRoom(
+            @PathVariable Long roomId,
+            @RequestBody RoomUpdateDto dto
+    ) {
+        HttpApiResponse<Boolean> response = universityAdminService.updateRoom(roomId, dto);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @DeleteMapping("/room")
+    public ResponseEntity<HttpApiResponse<Boolean>> deleteRoom(
+            @RequestParam Long roomId
+    ) {
+        HttpApiResponse<Boolean> response = universityAdminService.deleteRoom(roomId);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 

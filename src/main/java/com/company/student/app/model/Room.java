@@ -16,7 +16,6 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @Entity
 @Table(uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"name", "organizationId"}),
         @UniqueConstraint(columnNames = {"number", "organizationId"})
 })
 public class Room extends MultiTenantEntity {

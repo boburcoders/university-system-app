@@ -10,6 +10,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @Builder
 public class TimeTableResponse {
+    private Long id;
     private String groupName;
     private String courseCode;
     private String day;

@@ -21,19 +21,20 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-    @RequestMapping("/api/student-profile")
-    @PreAuthorize("hasRole('STUDENT')")
-    public class StudentProfileController {
-        private final StudentProfileService profileService;
+@RequestMapping("/api/student-profile")
+@PreAuthorize("hasRole('STUDENT')")
+public class StudentProfileController {
+    private final StudentProfileService profileService;
 
-        @GetMapping("/me")
-        public ResponseEntity<HttpApiResponse<UserMeResponse>> getCurrentUser(Authentication authentication) {
-            HttpApiResponse<UserMeResponse> response = profileService.getMe(authentication);
-            return ResponseEntity.status(response.getStatus()).body(response);
-        }
+    @GetMapping("/me")
+    public ResponseEntity<HttpApiResponse<UserMeResponse>> getCurrentUser(Authentication authentication) {
+        HttpApiResponse<UserMeResponse> response = profileService.getMe(authentication);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
 
     @GetMapping("/profile")
     public ResponseEntity<HttpApiResponse<StudentProfileResponse>> getProfile() {
@@ -71,15 +72,21 @@ import java.util.List;
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
+    @GetMapping("/get-student-statistics")
+    public ResponseEntity<HttpApiResponse<Map<String,Long>>> getStudentStatistics() {
+        HttpApiResponse<Map<String,Long>> response
+                = profileService.getStudentStatistics();
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
     @GetMapping("/get-attendances")
     public ResponseEntity<HttpApiResponse<Page<AttendanceResponse>>> getStudentAttendances(
             @RequestParam(required = false, defaultValue = "0") Integer page,
             @RequestParam(required = false, defaultValue = "10") Integer size,
-            @RequestParam(required = false) Long lessonId,
             @RequestParam(required = false) Long courseId
     ) {
         HttpApiResponse<Page<AttendanceResponse>> response
-                = profileService.getStudentAttendances(PageRequest.of(page, size), lessonId, courseId);
+                = profileService.getStudentAttendances(PageRequest.of(page, size), courseId);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 

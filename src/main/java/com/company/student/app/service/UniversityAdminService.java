@@ -3,6 +3,7 @@ package com.company.student.app.service;
 import com.company.student.app.dto.course.CourseAssignmentRequest;
 import com.company.student.app.dto.course.CourseRequestDto;
 import com.company.student.app.dto.course.CourseResponseDto;
+import com.company.student.app.dto.course.CourseUpdateRequest;
 import com.company.student.app.dto.department.DepartmentRequestDto;
 import com.company.student.app.dto.department.DepartmentResponse;
 import com.company.student.app.dto.department.DepartmentUpdateRequest;
@@ -11,13 +12,18 @@ import com.company.student.app.dto.faculty.FacultyResponse;
 import com.company.student.app.dto.faculty.FacultyUpdateRequest;
 import com.company.student.app.dto.group.GroupRequestDto;
 import com.company.student.app.dto.group.GroupResponse;
+import com.company.student.app.dto.group.GroupUpdateRequest;
 import com.company.student.app.dto.response.HttpApiResponse;
 import com.company.student.app.dto.response.UserMeResponse;
+import com.company.student.app.dto.room.RoomRequestDto;
+import com.company.student.app.dto.room.RoomResponseDto;
+import com.company.student.app.dto.room.RoomUpdateDto;
 import com.company.student.app.dto.student.StudentCreateRequest;
 import com.company.student.app.dto.student.StudentShortResponse;
 import com.company.student.app.dto.teacher.TeacherCreateRequest;
 import com.company.student.app.dto.teacher.TeacherShortResponseDto;
 import com.company.student.app.dto.timetable.TimeTableRequest;
+import com.company.student.app.dto.timetable.TimeTableResponse;
 import com.company.student.app.dto.univerAdmin.StatisticResponse;
 import com.company.student.app.dto.univerAdmin.UniversityAdminProfileResponse;
 import com.company.student.app.dto.univerAdmin.UniversityAdminUpdateRequest;
@@ -25,10 +31,13 @@ import com.company.student.app.dto.university.UniversityProfileResponse;
 import com.company.student.app.dto.university.UniversityUpdateRequest;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Service
 public interface UniversityAdminService {
@@ -93,4 +102,18 @@ public interface UniversityAdminService {
     HttpApiResponse<Boolean> assignStudentToGroup(Long studentId, Long groupId);
 
     HttpApiResponse<UniversityProfileResponse> getUniversityProfile();
+
+    HttpApiResponse<Page<RoomResponseDto>> getAllRoomInUniversity(Pageable pageable);
+
+    HttpApiResponse<Boolean> createRoom(@Valid RoomRequestDto request);
+
+    HttpApiResponse<Boolean> updateRoom(Long roomId, RoomUpdateDto dto);
+
+    HttpApiResponse<Boolean> deleteRoom(Long roomId);
+
+    HttpApiResponse<List<TimeTableResponse>> getTimeTable(Long teacherId, Long groupId, Long roomId);
+
+    HttpApiResponse<Boolean> updateGroup(Long groupId, GroupUpdateRequest request);
+
+    HttpApiResponse<Boolean> updateCourse(Long courseId, CourseUpdateRequest request);
 }

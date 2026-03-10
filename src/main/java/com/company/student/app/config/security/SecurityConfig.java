@@ -30,6 +30,7 @@ public class SecurityConfig {
 
     private static final String[] WHITELIST = {
             "/api/auth/login/**",
+            "/api/auth/verify-2fa",
             "/api/auth/get-universities*",
             "/api/file/download",      // ← ADD THIS
             "/api/file/download/**",

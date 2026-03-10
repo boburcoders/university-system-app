@@ -2,7 +2,6 @@ package com.company.student.app.repository;
 
 import com.company.student.app.model.Course;
 import jakarta.validation.constraints.NotBlank;
-import org.checkerframework.checker.units.qual.C;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,7 +11,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -69,4 +67,17 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
              where c.organizationId=:universityId and c.deletedAt is null
             """)
     void softDeleteByUniversity(Long universityId, LocalDateTime now);
+
+    boolean existsByCodeAndOrganizationIdAndIdNotAndDeletedAtIsNull(String code, Long universityId, Long courseId);
+
+    @Query("""
+            select count(distinct c.id)
+            from StudentProfile s
+            join s.group g
+            join g.faculty f
+            join Course c on c.faculty = f
+            where s.id = :studentId
+            and s.organizationId = :universityId
+            """)
+    Long findAllStudentCourseCount(@Param("studentId") Long studentId, @Param("universityId") Long universityId);
 }

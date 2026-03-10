@@ -1,10 +1,12 @@
 package com.company.student.app.service.mapper;
 
 import com.company.student.app.dto.lesson.LessonCreateRequest;
+import com.company.student.app.dto.lesson.LessonMaterialUpdateRequest;
 import com.company.student.app.dto.lesson.LessonResponse;
+import com.company.student.app.dto.lesson.LessonUpdateRequest;
 import com.company.student.app.model.Lesson;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import com.company.student.app.model.LessonMaterial;
+import org.mapstruct.*;
 
 @Mapper(componentModel = "spring")
 public abstract class LessonMapper {
@@ -15,6 +17,10 @@ public abstract class LessonMapper {
                 .build();
     }
 
-    @Mapping(target = "courseCode",source = "lesson.course.code")
+    @Mapping(target = "courseCode", source = "lesson.course.code")
     public abstract LessonResponse mapToLessonResponse(Lesson lesson);
+
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    public abstract void updateEntity(@MappingTarget Lesson lesson, LessonUpdateRequest request);
 }

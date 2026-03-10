@@ -1,4 +1,4 @@
-package com.company.student.app.dto.group;
+package com.company.student.app.dto.room;
 
 import lombok.*;
 
@@ -7,9 +7,8 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class GroupResponse {
+public class RoomResponseDto {
     private Long id;
     private String name;
-    private String code;
-    private String facultyName;
+    private Integer number;
 }

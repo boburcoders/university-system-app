@@ -8,6 +8,8 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class TokenResponseDto {
+    private Boolean requiresTwoFactor;
     private String accessToken;
     private String refreshToken;
+    private String tempToken;
 }

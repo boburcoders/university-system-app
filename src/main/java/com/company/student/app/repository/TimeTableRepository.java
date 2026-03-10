@@ -26,4 +26,6 @@ public interface TimeTableRepository extends JpaRepository<TimeTable, Long> {
     void softDeleteByUniversity(Long universityId, LocalDateTime now);
 
     List<TimeTable> findAllByOrganizationIdAndGroupIdAndDeletedAtIsNull(Long universityId, Long groupId);
+
+    List<TimeTable> findAllByOrganizationIdAndRoomIdAndDeletedAtIsNull(Long universityId, Long roomId);
 }
