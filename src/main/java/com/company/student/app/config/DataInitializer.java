@@ -46,7 +46,6 @@ public class DataInitializer {
                     .username("superadmin")
                     .password(passwordEncoder.encode("123456")) // 🔐 hash
                     .organizationId(university.getId())
-                    .twoFactorEnabled(false)
                     .build();
             authUserRepository.save(authUser);
 
