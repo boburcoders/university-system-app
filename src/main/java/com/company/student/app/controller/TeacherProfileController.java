@@ -1,17 +1,25 @@
 package com.company.student.app.controller;
 
+import com.company.student.app.dto.assignment.AssignmentRequest;
+import com.company.student.app.dto.assignment.AssignmentResponse;
+import com.company.student.app.dto.assignment.AssignmentUpdateRequest;
 import com.company.student.app.dto.attedance.AttendanceRequestDto;
 import com.company.student.app.dto.course.CourseResponseDto;
+import com.company.student.app.dto.grade.GradeRequest;
+import com.company.student.app.dto.grade.GradeResponse;
+import com.company.student.app.dto.grade.GradeUpdateRequest;
 import com.company.student.app.dto.group.GroupResponse;
 import com.company.student.app.dto.lesson.*;
 import com.company.student.app.dto.response.HttpApiResponse;
 import com.company.student.app.dto.response.UserMeResponse;
 import com.company.student.app.dto.room.RoomResponseDto;
 import com.company.student.app.dto.student.StudentAttendanceResponse;
+import com.company.student.app.dto.submission.SubmissionResponse;
 import com.company.student.app.dto.teacher.TeacherProfileResponse;
 import com.company.student.app.dto.teacher.TeacherUpdateRequest;
 import com.company.student.app.dto.timetable.TimeTableResponse;
 import com.company.student.app.service.TeacherProfileService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -181,4 +189,95 @@ public class TeacherProfileController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
+
+    /*Assignment Section*/
+
+    @PostMapping("/assignment/{courseId}")
+    public ResponseEntity<HttpApiResponse<Boolean>> createAssignment(@RequestBody @Valid AssignmentRequest request, @PathVariable Long courseId) {
+        HttpApiResponse<Boolean> response = teacherProfileService.createAssignment(request, courseId);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @GetMapping("/assignment/{assignmentId}")
+    public ResponseEntity<HttpApiResponse<AssignmentResponse>> getAssignmentById(@PathVariable Long assignmentId) {
+        HttpApiResponse<AssignmentResponse> response = teacherProfileService.getAssignmentById(assignmentId);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @GetMapping("/assignment/getByCourse/{courseId}")
+    public ResponseEntity<HttpApiResponse<Page<AssignmentResponse>>> getAllAssignmentByCourse(
+            @PathVariable Long courseId,
+            @RequestParam(required = false, defaultValue = "0") int pageNumber,
+            @RequestParam(required = false, defaultValue = "10") int sizeNumber) {
+        HttpApiResponse<Page<AssignmentResponse>> response =
+                teacherProfileService.getAllAssignmentByCourse(courseId, PageRequest.of(pageNumber, sizeNumber));
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @GetMapping("/assignment/getall-by-teacher")
+    public ResponseEntity<HttpApiResponse<Page<AssignmentResponse>>> getAllAssignmentByTeacherProfile(
+            @RequestParam(required = false, defaultValue = "0") int pageNumber,
+            @RequestParam(required = false, defaultValue = "10") int sizeNumber
+    ) {
+        HttpApiResponse<Page<AssignmentResponse>> response =
+                teacherProfileService.getAllAssignmentByTeacherProfile(PageRequest.of(pageNumber, sizeNumber));
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @PutMapping("/assignment/{id}")
+    public ResponseEntity<HttpApiResponse<Long>> updateAssignment(@RequestBody AssignmentUpdateRequest request, @PathVariable Long id) {
+        HttpApiResponse<Long> response = teacherProfileService.updateAssignment(request, id);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @DeleteMapping("/assignment/{id}")
+    public ResponseEntity<HttpApiResponse<Boolean>> deleteAssignment(@PathVariable Long id) {
+        HttpApiResponse<Boolean> response = teacherProfileService.deleteAssignment(id);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    /*Grade Section*/
+
+    @PostMapping("/grade/{submissionId}")
+    public ResponseEntity<HttpApiResponse<Long>> createGrade(@RequestBody @Valid GradeRequest request, @PathVariable Long submissionId) {
+        HttpApiResponse<Long> response = teacherProfileService.createGrade(request, submissionId);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @GetMapping("/grade/{id}")
+    public ResponseEntity<HttpApiResponse<GradeResponse>> getGradeById(@PathVariable Long id) {
+        HttpApiResponse<GradeResponse> response = teacherProfileService.getGradeById(id);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @GetMapping("/grade-by-submission/{submissionId}")
+    public ResponseEntity<HttpApiResponse<GradeResponse>> getGradeBySubmissionId(@PathVariable Long submissionId) {
+        HttpApiResponse<GradeResponse> response = teacherProfileService.getGradeBySubmissionId(submissionId);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+
+    @PutMapping("/grade/{id}")
+    public ResponseEntity<HttpApiResponse<Boolean>> updateGrade(@RequestBody GradeUpdateRequest request, @PathVariable Long id) {
+        HttpApiResponse<Boolean> response = teacherProfileService.updateGrade(request, id);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @DeleteMapping("/grade/{id}")
+    public ResponseEntity<HttpApiResponse<Boolean>> deleteGrade(@PathVariable Long id) {
+        HttpApiResponse<Boolean> response = teacherProfileService.deleteGrade(id);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    /*Submission Section*/
+
+    @GetMapping("/submission/{assignmentId}")
+    public ResponseEntity<HttpApiResponse<Page<SubmissionResponse>>> getAllSubmissionByAssignment(
+            @PathVariable Long assignmentId,
+            @RequestParam(required = false, defaultValue = "0") int pageNumber,
+            @RequestParam(required = false, defaultValue = "10") int sizeNumber) {
+        HttpApiResponse<Page<SubmissionResponse>> response =
+                teacherProfileService.getAllSubmissionByAssignment(assignmentId, PageRequest.of(pageNumber, sizeNumber));
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
 }

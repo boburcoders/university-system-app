@@ -32,7 +32,7 @@ public class SecurityConfig {
             "/api/auth/login/**",
             "/api/auth/verify-2fa",
             "/api/auth/get-universities*",
-            "/api/file/download",      // ← ADD THIS
+            "/api/file/download",
             "/api/file/download/**",
             "/v3/api-docs/**",
             "/swagger-ui/**",
