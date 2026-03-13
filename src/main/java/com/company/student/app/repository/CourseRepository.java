@@ -80,4 +80,6 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
             and s.organizationId = :universityId
             """)
     Long findAllStudentCourseCount(@Param("studentId") Long studentId, @Param("universityId") Long universityId);
+
+    boolean existsByIdAndDeletedAtIsNullAndOrganizationId(Long courseId,Long organizationId);
 }

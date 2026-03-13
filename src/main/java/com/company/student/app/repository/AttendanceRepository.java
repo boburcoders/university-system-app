@@ -19,6 +19,6 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     @Query("select a from Attendance a where a.lesson.course.id=:courseId and a.student.id=:studentId and a.organizationId=:organizationId and a.deletedAt is null ")
     Page<Attendance> findAllByCourseIdAndStudentIdAndOrganizationId(Long courseId, Long studentId, Long organizationId, Pageable pageable);
 
-    @Query("select count(distinct a.id) from Attendance a where a.id=:id and a.organizationId=:universityId and a.deletedAt is null ")
+    @Query("select count(distinct a.id) from Attendance a where a.student.id=:id and a.organizationId=:universityId and a.deletedAt is null ")
     Long findAllByStudentId(Long id, Long universityId);
 }

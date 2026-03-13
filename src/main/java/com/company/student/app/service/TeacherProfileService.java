@@ -1,16 +1,24 @@
 package com.company.student.app.service;
 
+import com.company.student.app.dto.assignment.AssignmentRequest;
+import com.company.student.app.dto.assignment.AssignmentResponse;
+import com.company.student.app.dto.assignment.AssignmentUpdateRequest;
 import com.company.student.app.dto.attedance.AttendanceRequestDto;
 import com.company.student.app.dto.course.CourseResponseDto;
+import com.company.student.app.dto.grade.GradeRequest;
+import com.company.student.app.dto.grade.GradeResponse;
+import com.company.student.app.dto.grade.GradeUpdateRequest;
 import com.company.student.app.dto.group.GroupResponse;
 import com.company.student.app.dto.lesson.*;
 import com.company.student.app.dto.response.HttpApiResponse;
 import com.company.student.app.dto.response.UserMeResponse;
 import com.company.student.app.dto.room.RoomResponseDto;
 import com.company.student.app.dto.student.StudentAttendanceResponse;
+import com.company.student.app.dto.submission.SubmissionResponse;
 import com.company.student.app.dto.teacher.TeacherProfileResponse;
 import com.company.student.app.dto.teacher.TeacherUpdateRequest;
 import com.company.student.app.dto.timetable.TimeTableResponse;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,7 +31,7 @@ import java.util.List;
 public interface TeacherProfileService {
     HttpApiResponse<TeacherProfileResponse> getTeacherProfile();
 
-    HttpApiResponse<List<TimeTableResponse>> getTimeTable(Long teacherId, Long groupId,Long roomId);
+    HttpApiResponse<List<TimeTableResponse>> getTimeTable(Long teacherId, Long groupId, Long roomId);
 
     HttpApiResponse<Boolean> createLesson(LessonCreateRequest request);
 
@@ -52,7 +60,31 @@ public interface TeacherProfileService {
 
     HttpApiResponse<Page<LessonResponse>> getTeacherLessons(Pageable pageable);
 
-    HttpApiResponse<Boolean> updateLessonMaterials(Long materialId, LessonMaterialUpdateRequest request,List<String> fileNames);
+    HttpApiResponse<Boolean> updateLessonMaterials(Long materialId, LessonMaterialUpdateRequest request, List<String> fileNames);
 
     HttpApiResponse<Boolean> updateLesson(Long lessonId, LessonUpdateRequest request);
+
+    HttpApiResponse<Boolean> createAssignment(@Valid AssignmentRequest request, Long courseId);
+
+    HttpApiResponse<AssignmentResponse> getAssignmentById(Long assignmentId);
+
+    HttpApiResponse<Page<AssignmentResponse>> getAllAssignmentByCourse(Long courseId, Pageable pageable);
+
+    HttpApiResponse<Page<AssignmentResponse>> getAllAssignmentByTeacherProfile(Pageable pageable);
+
+    HttpApiResponse<Long> updateAssignment(AssignmentUpdateRequest request, Long id);
+
+    HttpApiResponse<Boolean> deleteAssignment(Long id);
+
+    HttpApiResponse<Long> createGrade(@Valid GradeRequest request, Long submissionId);
+
+    HttpApiResponse<GradeResponse> getGradeById(Long id);
+
+    HttpApiResponse<Boolean> updateGrade(@Valid GradeUpdateRequest request, Long id);
+
+    HttpApiResponse<Boolean> deleteGrade(Long id);
+
+    HttpApiResponse<Page<SubmissionResponse>> getAllSubmissionByAssignment(Long assignmentId, Pageable pageable);
+
+    HttpApiResponse<GradeResponse> getGradeBySubmissionId(Long submissionId);
 }

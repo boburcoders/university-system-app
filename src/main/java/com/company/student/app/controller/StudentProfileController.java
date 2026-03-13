@@ -1,7 +1,9 @@
 package com.company.student.app.controller;
 
+import com.company.student.app.dto.assignment.AssignmentResponse;
 import com.company.student.app.dto.attedance.AttendanceResponse;
 import com.company.student.app.dto.course.CourseResponseDto;
+import com.company.student.app.dto.grade.GradeResponse;
 import com.company.student.app.dto.group.GroupShortResponse;
 import com.company.student.app.dto.lesson.LessonMaterialResponse;
 import com.company.student.app.dto.lesson.LessonResponse;
@@ -9,6 +11,8 @@ import com.company.student.app.dto.response.HttpApiResponse;
 import com.company.student.app.dto.response.UserMeResponse;
 import com.company.student.app.dto.student.StudentProfileResponse;
 import com.company.student.app.dto.student.StudentProfileUpdateRequest;
+import com.company.student.app.dto.submission.SubmissionRequest;
+import com.company.student.app.dto.submission.SubmissionResponse;
 import com.company.student.app.dto.teacher.TeacherResponse;
 import com.company.student.app.dto.timetable.TimeTableResponse;
 import com.company.student.app.service.StudentProfileService;
@@ -73,8 +77,8 @@ public class StudentProfileController {
     }
 
     @GetMapping("/get-student-statistics")
-    public ResponseEntity<HttpApiResponse<Map<String,Long>>> getStudentStatistics() {
-        HttpApiResponse<Map<String,Long>> response
+    public ResponseEntity<HttpApiResponse<Map<String, Long>>> getStudentStatistics() {
+        HttpApiResponse<Map<String, Long>> response
                 = profileService.getStudentStatistics();
         return ResponseEntity.status(response.getStatus()).body(response);
     }
@@ -126,5 +130,60 @@ public class StudentProfileController {
         HttpApiResponse<Boolean> response = profileService.updatePassword(oldPassword, newPassword);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
+
+    @GetMapping("/assignment-by-id/{id}")
+    public ResponseEntity<HttpApiResponse<AssignmentResponse>> getAssignmentById(@PathVariable Long id) {
+        HttpApiResponse<AssignmentResponse> response = profileService.getAssignmentById(id);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @GetMapping("/assignment-by-course/{courseId}")
+    public ResponseEntity<HttpApiResponse<List<AssignmentResponse>>> getAllAssignmentByCourse(@PathVariable Long courseId) {
+        HttpApiResponse<List<AssignmentResponse>> response = profileService.getAllAssignmentByCourse(courseId);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @GetMapping("/assignment-by-student")
+    public ResponseEntity<HttpApiResponse<List<AssignmentResponse>>> getAllAssignmentByStudent() {
+        HttpApiResponse<List<AssignmentResponse>> response = profileService.getAllAssignmentByStudent();
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @PostMapping("/submission/{assignmentId}")
+    public ResponseEntity<HttpApiResponse<Boolean>> createSubmission(@RequestBody SubmissionRequest request, @PathVariable Long assignmentId) {
+        HttpApiResponse<Boolean> response = profileService.createSubmission(request, assignmentId);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @GetMapping("/submission-by-id/{id}")
+    public ResponseEntity<HttpApiResponse<SubmissionResponse>> getSubmissionById(@PathVariable Long id) {
+        HttpApiResponse<SubmissionResponse> response = profileService.getSubmissionById(id);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @GetMapping("/submission-by-assignment/{id}")
+    public ResponseEntity<HttpApiResponse<List<SubmissionResponse>>> getSubmissionByAssignment(
+            @PathVariable Long id
+    ) {
+        HttpApiResponse<List<SubmissionResponse>> response = profileService.getSubmissionByAssignment(id);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @GetMapping("/submission-by-student")
+    public ResponseEntity<HttpApiResponse<Page<SubmissionResponse>>> getSubmissionByStudent(
+            @RequestParam(required = false, defaultValue = "0") int pageNumber,
+            @RequestParam(required = false, defaultValue = "10") int sizeNumber,
+            @RequestParam(required = false) Long courseId
+    ) {
+        HttpApiResponse<Page<SubmissionResponse>> response = profileService.getSubmissionByStudent(PageRequest.of(pageNumber, sizeNumber),courseId);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @GetMapping("/grade/{submissionId}")
+    public ResponseEntity<HttpApiResponse<GradeResponse>> getGradeBySubmission(@PathVariable Long submissionId) {
+        HttpApiResponse<GradeResponse> response = profileService.getGradeBySubmission(submissionId);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
 
 }

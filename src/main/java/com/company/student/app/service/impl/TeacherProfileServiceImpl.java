@@ -2,18 +2,26 @@ package com.company.student.app.service.impl;
 
 import com.company.student.app.config.security.TenantContext;
 import com.company.student.app.config.security.UserSession;
+import com.company.student.app.dto.assignment.AssignmentRequest;
+import com.company.student.app.dto.assignment.AssignmentResponse;
+import com.company.student.app.dto.assignment.AssignmentUpdateRequest;
 import com.company.student.app.dto.attedance.AttendanceRequestDto;
 import com.company.student.app.dto.course.CourseResponseDto;
+import com.company.student.app.dto.grade.GradeRequest;
+import com.company.student.app.dto.grade.GradeResponse;
+import com.company.student.app.dto.grade.GradeUpdateRequest;
 import com.company.student.app.dto.group.GroupResponse;
 import com.company.student.app.dto.lesson.*;
 import com.company.student.app.dto.response.HttpApiResponse;
 import com.company.student.app.dto.response.UserMeResponse;
 import com.company.student.app.dto.room.RoomResponseDto;
 import com.company.student.app.dto.student.StudentAttendanceResponse;
+import com.company.student.app.dto.submission.SubmissionResponse;
 import com.company.student.app.dto.teacher.TeacherProfileResponse;
 import com.company.student.app.dto.teacher.TeacherUpdateRequest;
 import com.company.student.app.dto.timetable.TimeTableResponse;
 import com.company.student.app.model.*;
+import com.company.student.app.model.enums.AssignmentStatus;
 import com.company.student.app.repository.*;
 import com.company.student.app.service.TeacherProfileService;
 import com.company.student.app.service.mapper.*;
@@ -27,6 +35,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +67,12 @@ public class TeacherProfileServiceImpl implements TeacherProfileService {
     private final AddressMapper addressMapper;
     private final RoomRepository roomRepository;
     private final RoomMapper roomMapper;
+    private final AssignmentMapper assignmentMapper;
+    private final AssignmentRepository assignmentRepository;
+    private final SubmissionRepository submissionRepository;
+    private final GradeRepository gradeRepository;
+    private final GradeMapper gradeMapper;
+    private final SubmissionMapper submissionMapper;
 
 
     @Override
@@ -483,7 +498,7 @@ public class TeacherProfileServiceImpl implements TeacherProfileService {
     public HttpApiResponse<Boolean> updatePassword(String oldPassword, String newPassword) {
         Long userId = userSession.userId();
         Long universityId = userSession.universityId();
-        AuthUser authUser = authUserRepository.findByIdAndDeletedAtIsNull(userId,universityId)
+        AuthUser authUser = authUserRepository.findByIdAndDeletedAtIsNull(userId, universityId)
                 .orElseThrow(() -> new EntityNotFoundException("user.not.found"));
 
         if (!passwordEncoder.matches(oldPassword, authUser.getPassword()))
@@ -506,18 +521,212 @@ public class TeacherProfileServiceImpl implements TeacherProfileService {
                 .orElseThrow(() -> new EntityNotFoundException("user.not.found"));
     }
 
+    @Transactional
+    @Override
+    public HttpApiResponse<Boolean> createAssignment(AssignmentRequest request, Long courseId) {
+        Course course = courseRepository.findByIdAndOrganisationId(courseId, userSession.universityId())
+                .orElseThrow(() -> new EntityNotFoundException("course.not.found"));
 
-    /*@Transactional
-    public void assignGroup(Long studentId, Long groupId) {
+        boolean exists = courseAssignmentRepository.
+                existsByTeacherIdAndCourseIdAndOrganizationIdAndDeletedAtIsNull(getCurrentTeacher().getId(), courseId, userSession.universityId());
+        if (!exists) {
+            throw new AccessDeniedException("you.cannot.create.assignment.for.this.course");
+        }
 
-        StudentProfile student = studentRepository
-                .findByIdAndOrganizationId(...)
-            .orElseThrow(...);
+        Assignment assignment = assignmentMapper.mapToEntity(request);
+        assignment.setCourse(course);
+        assignment.setTeacher(getCurrentTeacher());
+        assignment.setStatus(AssignmentStatus.PUBLISHED);
+        assignment.setOrganizationId(userSession.universityId());
+        assignmentRepository.save(assignment);
 
-        Group group = groupRepository
-                .findByIdAndOrganizationId(...)
-            .orElseThrow(...);
+        return HttpApiResponse.<Boolean>builder()
+                .success(true)
+                .status(201)
+                .message("ok")
+                .data(true)
+                .build();
+    }
 
-        student.setGroup(group);
-    }*/
+    @Override
+    public HttpApiResponse<AssignmentResponse> getAssignmentById(Long assignmentId) {
+        Assignment assignment = assignmentRepository.findByIdAndDeletedAtIsNull(assignmentId, userSession.universityId())
+                .orElseThrow(() -> new EntityNotFoundException("assignment.not.found"));
+        AssignmentResponse response = assignmentMapper.mapToAssignmentResponse(assignment);
+
+        return HttpApiResponse.<AssignmentResponse>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(response)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public HttpApiResponse<Page<AssignmentResponse>> getAllAssignmentByCourse(Long courseId, Pageable pageable) {
+        boolean exists = courseRepository.existsByIdAndDeletedAtIsNullAndOrganizationId(courseId, userSession.universityId());
+        if (!exists) {
+            throw new EntityNotFoundException("course.not.found");
+        }
+        Page<Assignment> assignmentPage = assignmentRepository.findAllByCourseId(courseId, userSession.universityId(), pageable);
+
+        return HttpApiResponse.<Page<AssignmentResponse>>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(assignmentPage.map(assignmentMapper::mapToAssignmentResponse))
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public HttpApiResponse<Page<AssignmentResponse>> getAllAssignmentByTeacherProfile(Pageable pageable) {
+        Long teacherId = getCurrentTeacher().getId();
+        Page<Assignment> assignmentPage = assignmentRepository.findAllByTeacherId(teacherId, userSession.universityId(), pageable);
+
+        return HttpApiResponse.<Page<AssignmentResponse>>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(assignmentPage.map(assignmentMapper::mapToAssignmentResponse))
+                .build();
+    }
+
+    @Transactional
+    @Override
+    public HttpApiResponse<Long> updateAssignment(AssignmentUpdateRequest request, Long id) {
+        Assignment assignment = assignmentRepository.findByIdAndDeletedAtIsNull(id, userSession.universityId())
+                .orElseThrow(() -> new EntityNotFoundException("assignment.not.found"));
+        if (!Objects.equals(assignment.getTeacher().getId(), getCurrentTeacher().getId())) {
+            throw new AccessDeniedException("you.can.not.modify.assignment");
+        }
+
+        assignmentMapper.updateEntity(assignment, request);
+
+        return HttpApiResponse.<Long>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(id)
+                .build();
+    }
+
+    @Transactional
+    @Override
+    public HttpApiResponse<Boolean> deleteAssignment(Long id) {
+        Assignment assignment = assignmentRepository.findByIdAndDeletedAtIsNull(id, userSession.universityId())
+                .orElseThrow(() -> new EntityNotFoundException("assignment.not.found"));
+
+        LocalDateTime now = LocalDateTime.now();
+        assignment.setDeletedAt(now);
+        submissionRepository.softDeleteSubmissions(id, userSession.universityId(), now);
+        gradeRepository.softDeleAllGrade(id, userSession.universityId(), now);
+
+        return HttpApiResponse.<Boolean>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(true)
+                .build();
+    }
+
+    @Transactional
+    @Override
+    public HttpApiResponse<Long> createGrade(GradeRequest request, Long submissionId) {
+        Submission submission = submissionRepository.findByIdAndAndOrganizationId(submissionId, userSession.universityId())
+                .orElseThrow(() -> new EntityNotFoundException("submission.not.found"));
+        Grade grade = gradeMapper.mapToEntity(request);
+        grade.setSubmission(submission);
+        grade.setTeacher(getCurrentTeacher());
+        grade.setOrganizationId(userSession.universityId());
+
+        Grade saved = gradeRepository.save(grade);
+
+        return HttpApiResponse.<Long>builder()
+                .success(true)
+                .status(201)
+                .message("ok")
+                .data(saved.getId())
+                .build();
+    }
+
+    @Override
+    public HttpApiResponse<GradeResponse> getGradeById(Long id) {
+        Grade grade = gradeRepository.findByIdAndDeletedAtIsNullAndOrganizationId(id, userSession.universityId())
+                .orElseThrow(() -> new EntityNotFoundException("grade.not.found"));
+        GradeResponse response = gradeMapper.mapToResponse(grade);
+
+        return HttpApiResponse.<GradeResponse>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(response)
+                .build();
+    }
+
+    @Override
+    public HttpApiResponse<GradeResponse> getGradeBySubmissionId(Long submissionId) {
+        submissionRepository.findByIdAndAndOrganizationId(submissionId, userSession.universityId())
+                .orElseThrow(() -> new EntityNotFoundException("submission.not.found"));
+
+        Grade grade = gradeRepository.findBySubmissionId(submissionId, userSession.universityId())
+                .orElseThrow(() -> new EntityNotFoundException("grade.not.found"));
+
+        return HttpApiResponse.<GradeResponse>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(gradeMapper.mapToResponse(grade))
+                .build();
+    }
+
+    @Transactional
+    @Override
+    public HttpApiResponse<Boolean> updateGrade(GradeUpdateRequest request, Long id) {
+        Grade grade = gradeRepository.findByIdAndDeletedAtIsNullAndOrganizationId(id, userSession.universityId())
+                .orElseThrow(() -> new EntityNotFoundException("grade.not.found"));
+        if (!Objects.equals(grade.getTeacher().getId(), getCurrentTeacher().getId())) {
+            throw new AccessDeniedException("you.can.not.modify.grade");
+        }
+
+        gradeMapper.updateEntity(grade, request);
+
+        return HttpApiResponse.<Boolean>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(true)
+                .build();
+    }
+
+    @Transactional
+    @Override
+    public HttpApiResponse<Boolean> deleteGrade(Long id) {
+        Grade grade = gradeRepository.findByIdAndDeletedAtIsNullAndOrganizationId(id, userSession.universityId())
+                .orElseThrow(() -> new EntityNotFoundException("grade.not.found"));
+        grade.setDeletedAt(LocalDateTime.now());
+
+        return HttpApiResponse.<Boolean>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(true)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public HttpApiResponse<Page<SubmissionResponse>> getAllSubmissionByAssignment(Long assignmentId, Pageable pageable) {
+        Assignment assignment = assignmentRepository.findByIdAndDeletedAtIsNull(assignmentId, userSession.universityId())
+                .orElseThrow(() -> new EntityNotFoundException("assignment.not.found"));
+        Page<Submission> submissionPage = submissionRepository.findAllPagesByAssignmentId(assignmentId, userSession.universityId(), pageable);
+
+        return HttpApiResponse.<Page<SubmissionResponse>>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(submissionPage.map(submissionMapper::mapToResponse))
+                .build();
+    }
 }
