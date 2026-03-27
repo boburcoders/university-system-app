@@ -6,6 +6,7 @@ import com.company.student.app.dto.response.HttpApiResponse;
 import com.company.student.app.dto.twoFA.VerifyTwoFactorRequest;
 import com.company.student.app.dto.university.UniversityShortResponse;
 import com.company.student.app.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,8 +21,8 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<HttpApiResponse<TokenResponseDto>> login(@RequestBody @Valid TokeRequestDto dto) {
-        HttpApiResponse<TokenResponseDto> response = authService.login(dto);
+    public ResponseEntity<HttpApiResponse<TokenResponseDto>> login(@RequestBody @Valid TokeRequestDto dto, HttpServletRequest request) {
+        HttpApiResponse<TokenResponseDto> response = authService.login(dto,request);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 

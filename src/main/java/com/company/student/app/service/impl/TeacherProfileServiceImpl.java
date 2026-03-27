@@ -25,6 +25,7 @@ import com.company.student.app.model.enums.AssignmentStatus;
 import com.company.student.app.repository.*;
 import com.company.student.app.service.TeacherProfileService;
 import com.company.student.app.service.mapper.*;
+import com.company.student.app.utils.AuditingLogService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -73,6 +74,7 @@ public class TeacherProfileServiceImpl implements TeacherProfileService {
     private final GradeRepository gradeRepository;
     private final GradeMapper gradeMapper;
     private final SubmissionMapper submissionMapper;
+    private final AuditingLogService auditingLogService;
 
 
     @Override
@@ -132,8 +134,8 @@ public class TeacherProfileServiceImpl implements TeacherProfileService {
                 teacherId != null
                         ? timeTableRepository.findAllByOrganizationIdAndTeacherIdAndDeletedAtIsNull(universityId, teacherId)
                         : groupId != null
-                        ? timeTableRepository.findAllByOrganizationIdAndGroupIdAndDeletedAtIsNull(universityId, groupId)
-                        : timeTableRepository.findAllByOrganizationIdAndRoomIdAndDeletedAtIsNull(universityId, roomId);
+                          ? timeTableRepository.findAllByOrganizationIdAndGroupIdAndDeletedAtIsNull(universityId, groupId)
+                          : timeTableRepository.findAllByOrganizationIdAndRoomIdAndDeletedAtIsNull(universityId, roomId);
 
         return HttpApiResponse.<List<TimeTableResponse>>builder()
                 .success(true)
@@ -182,6 +184,13 @@ public class TeacherProfileServiceImpl implements TeacherProfileService {
         lesson.setOrganizationId(universityId);
 
         lessonRepository.save(lesson);
+
+        auditingLogService.log(userSession.universityId(),
+                userSession.getCurrentUser(),
+                userSession.ip(),
+                userSession.userAgent(),
+                userSession.deviceKey(),
+                "Teacher created lesson");
 
         return HttpApiResponse.<Boolean>builder()
                 .success(true)
@@ -504,6 +513,13 @@ public class TeacherProfileServiceImpl implements TeacherProfileService {
         if (!passwordEncoder.matches(oldPassword, authUser.getPassword()))
             throw new IllegalArgumentException("password.incorrect");
         authUser.setPassword(passwordEncoder.encode(newPassword));
+
+        auditingLogService.log(userSession.universityId(),
+                userSession.getCurrentUser(),
+                userSession.ip(),
+                userSession.userAgent(),
+                userSession.deviceKey(),
+                "teacher password updated");
 
         return HttpApiResponse.<Boolean>builder()
                 .success(true)

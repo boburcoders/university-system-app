@@ -14,6 +14,17 @@ import java.util.Objects;
 public class UserSession {
     private final AuthUserRepository authUserRepository;
 
+    private CustomAuthenticationDetails getDetails() {
+        Authentication auth = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+
+        if (auth == null || !(auth.getDetails() instanceof CustomAuthenticationDetails details)) {
+            return null;
+        }
+        return details;
+    }
+
     public UserSession(AuthUserRepository authUserRepository) {
         this.authUserRepository = authUserRepository;
     }
@@ -71,7 +82,24 @@ public class UserSession {
     public AuthUser getCurrentUser() {
         Long userId = getPrincipal().getUserId();
         Long organisationId = getPrincipal().getOrganisationId();
-        return authUserRepository.findByIdAndDeletedAtIsNull(userId,organisationId).
+        return authUserRepository.findByIdAndDeletedAtIsNull(userId, organisationId).
                 orElseThrow(() -> new EntityNotFoundException("user.not.found"));
     }
+
+    public String ip() {
+        CustomAuthenticationDetails details = getDetails();
+        return details != null ? details.getIp() : null;
+    }
+
+    public String userAgent() {
+        CustomAuthenticationDetails details = getDetails();
+        return details != null ? details.getUserAgent() : null;
+    }
+
+    public String deviceKey() {
+        CustomAuthenticationDetails details = getDetails();
+        return details != null ? details.getDeviceKey() : null;
+    }
+
+
 }

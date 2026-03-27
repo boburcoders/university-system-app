@@ -1,5 +1,6 @@
 package com.company.student.app.controller;
 
+import com.company.student.app.dto.log.AuditingLogResponse;
 import com.company.student.app.dto.response.HttpApiResponse;
 import com.company.student.app.dto.response.UserMeResponse;
 import com.company.student.app.dto.systemAdmin.SuperAdminResponse;
@@ -57,8 +58,8 @@ public class SystemAdminController {
 
     @GetMapping("/getAll-university")
     public ResponseEntity<HttpApiResponse<Page<UniversityResponse>>> getAllUniversity(
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
+            @RequestParam(required = false, defaultValue = "0") Integer page,
+            @RequestParam(required = false, defaultValue = "10") Integer size) {
 
         HttpApiResponse<Page<UniversityResponse>> response =
                 superAdminService.getAllUniversity(PageRequest.of(page, size));
@@ -69,6 +70,15 @@ public class SystemAdminController {
     @GetMapping("/get-all-user-count")
     public ResponseEntity<HttpApiResponse<Integer>> getAllUserCountInSystem() {
         HttpApiResponse<Integer> response = superAdminService.getAllUserCountInSystem();
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @GetMapping("/all-auditing-log/{universityId}")
+    public ResponseEntity<HttpApiResponse<Page<AuditingLogResponse>>> getAllAuditingLog(
+            @RequestParam(required = false, defaultValue = "0") Integer page,
+            @RequestParam(required = false, defaultValue = "10") Integer size,
+            @PathVariable Long universityId) {
+        HttpApiResponse<Page<AuditingLogResponse>> response = superAdminService.getAllAuditingLog(PageRequest.of(page, size), universityId);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 

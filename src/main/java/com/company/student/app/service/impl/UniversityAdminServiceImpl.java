@@ -26,6 +26,7 @@ import com.company.student.app.dto.teacher.TeacherCreateRequest;
 import com.company.student.app.dto.teacher.TeacherShortResponseDto;
 import com.company.student.app.dto.timetable.TimeTableRequest;
 import com.company.student.app.dto.timetable.TimeTableResponse;
+import com.company.student.app.dto.timetable.TimeTableUpdateRequest;
 import com.company.student.app.dto.univerAdmin.StatisticResponse;
 import com.company.student.app.dto.univerAdmin.UniversityAdminProfileResponse;
 import com.company.student.app.dto.univerAdmin.UniversityAdminUpdateRequest;
@@ -36,6 +37,7 @@ import com.company.student.app.model.enums.UniversityRole;
 import com.company.student.app.repository.*;
 import com.company.student.app.service.UniversityAdminService;
 import com.company.student.app.service.mapper.*;
+import com.company.student.app.utils.AuditingLogService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
@@ -87,6 +89,7 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
     private final RoomRepository roomRepository;
     private final RoomMapper roomMapper;
     private final TimeTableMapper timeTableMapper;
+    private final AuditingLogService auditingLogService;
 
 
     @Override
@@ -173,6 +176,13 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
                 .build();
 
         userRoleRepository.save(userRole);
+
+        auditingLogService.log(userSession.universityId(),
+                userSession.getCurrentUser(),
+                userSession.ip(),
+                userSession.userAgent(),
+                userSession.deviceKey(),
+                "Teacher created");
 
         return HttpApiResponse.<Long>builder()
                 .success(true)
@@ -657,6 +667,64 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
                 .build();
     }
 
+    @Transactional
+    @Override
+    public HttpApiResponse<Boolean> updateTimeTable(Long id, TimeTableUpdateRequest request) {
+        Long universityId = userSession.universityId();
+
+        TimeTable timeTable = timeTableRepository.findByIdAndOrganizationId(id, universityId)
+                .orElseThrow(() -> new EntityNotFoundException("time.table.not.found"));
+
+        if (request.getGroupId() != null) {
+            Group group = groupRepository.findByIdAndOrganizationId(request.getGroupId(), universityId)
+                    .orElseThrow(() -> new EntityNotFoundException("group.not.found"));
+            timeTable.setGroup(group);
+        }
+
+        if (request.getCourseId() != null) {
+            Course course = courseRepository.findByIdAndOrganisationId(request.getCourseId(), universityId)
+                    .orElseThrow(() -> new EntityNotFoundException("course.not.found"));
+            timeTable.setCourse(course);
+        }
+
+        if (request.getTeacherId() != null) {
+            TeacherProfile teacherProfile = teacherProfileRepository
+                    .findByIdAndOrganizationIdAndDeletedAtIsNull(request.getTeacherId(), universityId)
+                    .orElseThrow(() -> new EntityNotFoundException("teacher.not.found"));
+            timeTable.setTeacher(teacherProfile);
+        }
+
+        if (request.getRoomId() != null) {
+            Room room = roomRepository.findByIdAndOrgId(request.getRoomId(), universityId)
+                    .orElseThrow(() -> new EntityNotFoundException("room.not.found"));
+            timeTable.setRoom(room);
+        }
+
+        timeTableMapper.updateEntity(timeTable, request);
+
+        return HttpApiResponse.<Boolean>builder()
+                .success(true)
+                .status(200)
+                .message("time.table.updated")
+                .data(true)
+                .build();
+    }
+
+    @Override
+    public HttpApiResponse<Boolean> deleteTimeTable(Long timeTableId) {
+        TimeTable timeTable = timeTableRepository.findByIdAndOrganizationId(timeTableId, userSession.universityId())
+                .orElseThrow(() -> new EntityNotFoundException("time.table.not.found"));
+        timeTable.setDeletedAt(LocalDateTime.now());
+        timeTableRepository.save(timeTable);
+
+        return HttpApiResponse.<Boolean>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(true)
+                .build();
+    }
+
     @Override
     @Transactional
     public HttpApiResponse<Boolean> removeTeacher(Long teacherId) {
@@ -680,6 +748,13 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
         userRole.setDeletedAt(now);
         user.setDeletedAt(now);
         profile.setDeletedAt(now);
+
+        auditingLogService.log(userSession.universityId(),
+                userSession.getCurrentUser(),
+                userSession.ip(),
+                userSession.userAgent(),
+                userSession.deviceKey(),
+                "Teacher deleted");
 
         return HttpApiResponse.<Boolean>builder()
                 .success(true)
@@ -789,13 +864,20 @@ public class UniversityAdminServiceImpl implements UniversityAdminService {
     @Override
     public HttpApiResponse<Boolean> updatePassword(String oldPassword, String newPassword) {
 
-        AuthUser authUser = authUserRepository.findByIdAndDeletedAtIsNull(userSession.userId(),userSession.universityId())
+        AuthUser authUser = authUserRepository.findByIdAndDeletedAtIsNull(userSession.userId(), userSession.universityId())
                 .orElseThrow(() -> new EntityNotFoundException("user.not.found"));
 
         if (!passwordEncoder.matches(oldPassword, authUser.getPassword())) {
             throw new IllegalArgumentException("password.incorrect");
         }
         authUser.setPassword(passwordEncoder.encode(newPassword));
+
+        auditingLogService.log(userSession.universityId(),
+                userSession.getCurrentUser(),
+                userSession.ip(),
+                userSession.userAgent(),
+                userSession.deviceKey(),
+                "Univer admin password updated");
 
         return HttpApiResponse.<Boolean>builder()
                 .success(true)

@@ -1,5 +1,6 @@
 package com.company.student.app.service.impl;
 
+import com.company.student.app.config.security.UserSession;
 import com.company.student.app.config.security.jwt.JwtService;
 import com.company.student.app.dto.auth.TokeRequestDto;
 import com.company.student.app.dto.auth.TokenResponseDto;
@@ -16,8 +17,10 @@ import com.company.student.app.service.AuthService;
 import com.company.student.app.service.SecretEncryptionService;
 import com.company.student.app.service.TotpService;
 import com.company.student.app.service.mapper.UniversityMapper;
+import com.company.student.app.utils.AuditingLogService;
 import com.company.student.app.utils.Translator;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -39,10 +42,12 @@ public class AuthServiceImpl implements AuthService {
     private final Translator translator;
     private final TotpService totpService;
     private final SecretEncryptionService encryptionService;
+    private final AuditingLogService auditingLogService;
+    private final UserSession userSession;
 
 
     @Override
-    public HttpApiResponse<TokenResponseDto> login(TokeRequestDto dto) {
+    public HttpApiResponse<TokenResponseDto> login(TokeRequestDto dto, HttpServletRequest request) {
         String username = dto.getUsername();
         String password = dto.getPassword();
         Long organisationId = dto.getOrganisationId();
@@ -60,7 +65,10 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("username.or.password.incorrect");
         }
 
-        // 2FA yoqilgan bo'lsa full token bermaymiz
+        String ip = request.getRemoteAddr();
+        String userAgent = request.getHeader("User-Agent");
+        String deviceKey = generateDeviceKey(ip, userAgent, authUser.getId());
+
         if (Boolean.TRUE.equals(authUser.getTwoFactorEnabled())) {
             Map<String, Object> tempClaims = Map.of(
                     "userId", authUser.getId(),
@@ -70,6 +78,15 @@ public class AuthServiceImpl implements AuthService {
             );
 
             String tempToken = jwtService.generateTempToken(authUser.getUsername(), tempClaims);
+
+            auditingLogService.log(
+                    organisationId,
+                    authUser,
+                    ip,
+                    userAgent,
+                    deviceKey,
+                    "2FA required on login"
+            );
 
             TokenResponseDto responseDto = TokenResponseDto.builder()
                     .requiresTwoFactor(true)
@@ -97,12 +114,26 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(jwtService.generateRefreshToken(authUser.getUsername(), claims))
                 .build();
 
+        auditingLogService.log(
+                organisationId,
+                authUser,
+                ip,
+                userAgent,
+                deviceKey,
+                "User Login"
+        );
+
         return HttpApiResponse.<TokenResponseDto>builder()
                 .success(true)
                 .status(200)
                 .message(translator.toLocale("user.login.successfully"))
                 .data(responseDto)
                 .build();
+    }
+
+    private String generateDeviceKey(String ip, String userAgent, Long userId) {
+        String raw = userId + "|" + ip + "|" + userAgent;
+        return Integer.toHexString(raw.hashCode());
     }
 
     @Override

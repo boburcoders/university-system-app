@@ -1,5 +1,6 @@
 package com.company.student.app.service;
 
+import com.company.student.app.dto.log.AuditingLogResponse;
 import com.company.student.app.dto.response.HttpApiResponse;
 import com.company.student.app.dto.response.UserMeResponse;
 import com.company.student.app.dto.systemAdmin.SuperAdminResponse;
@@ -32,4 +33,6 @@ public interface SuperAdminService {
     HttpApiResponse<Boolean> updateProfile(SystemAdminUpdateRequest request);
 
     HttpApiResponse<UserMeResponse> getMe(Authentication authentication);
+
+    HttpApiResponse<Page<AuditingLogResponse>> getAllAuditingLog(Pageable pageable,Long orgId);
 }

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TimeTableRepository extends JpaRepository<TimeTable, Long> {
@@ -28,4 +29,7 @@ public interface TimeTableRepository extends JpaRepository<TimeTable, Long> {
     List<TimeTable> findAllByOrganizationIdAndGroupIdAndDeletedAtIsNull(Long universityId, Long groupId);
 
     List<TimeTable> findAllByOrganizationIdAndRoomIdAndDeletedAtIsNull(Long universityId, Long roomId);
+
+    @Query("select t from TimeTable t where t.id=:id and t.organizationId=:universityId and t.deletedAt is null")
+    Optional<TimeTable> findByIdAndOrganizationId(Long id, Long universityId);
 }
