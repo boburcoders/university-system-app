@@ -9,6 +9,7 @@ import com.company.student.app.repository.AuthUserRepository;
 import com.company.student.app.repository.SuperAdminRepository;
 import com.company.student.app.repository.UniversityRepository;
 import com.company.student.app.repository.UniversityUserRoleRepository;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
@@ -16,6 +17,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.TimeZone;
 
 @Configuration
 @RequiredArgsConstructor
@@ -73,6 +76,11 @@ public class DataInitializer {
             log.info("username: superadmin");
             log.info("password: 123456");
         };
+    }
+
+    @PostConstruct
+    public void init() {
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Tashkent"));
     }
 
 }

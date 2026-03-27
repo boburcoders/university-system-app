@@ -18,8 +18,10 @@ public interface UniversityRepository extends JpaRepository<University, Long> {
 
     Page<University> findAllByDeletedAtIsNull(Pageable pageable);
 
+    @Query("select count(u.id)>0 from University u where u.code=:code and u.deletedAt is null")
     boolean existsUniversitiesByCodeAndDeletedAtIsNull(String code);
 
+    @Query("select count(u.id)>0 from University u where u.name=:name and u.deletedAt is null")
     boolean existsUniversitiesByNameAndDeletedAtIsNull(String name);
 
     boolean existsByNameAndIdNotAndDeletedAtIsNull(String name, Long id);
