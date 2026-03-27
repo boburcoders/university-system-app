@@ -24,6 +24,7 @@ import com.company.student.app.dto.teacher.TeacherCreateRequest;
 import com.company.student.app.dto.teacher.TeacherShortResponseDto;
 import com.company.student.app.dto.timetable.TimeTableRequest;
 import com.company.student.app.dto.timetable.TimeTableResponse;
+import com.company.student.app.dto.timetable.TimeTableUpdateRequest;
 import com.company.student.app.dto.univerAdmin.StatisticResponse;
 import com.company.student.app.dto.univerAdmin.UniversityAdminProfileResponse;
 import com.company.student.app.dto.univerAdmin.UniversityAdminUpdateRequest;
@@ -116,4 +117,8 @@ public interface UniversityAdminService {
     HttpApiResponse<Boolean> updateGroup(Long groupId, GroupUpdateRequest request);
 
     HttpApiResponse<Boolean> updateCourse(Long courseId, CourseUpdateRequest request);
+
+    HttpApiResponse<Boolean> updateTimeTable(Long id, TimeTableUpdateRequest request);
+
+    HttpApiResponse<Boolean> deleteTimeTable(Long timeTableId);
 }

@@ -2,6 +2,7 @@ package com.company.student.app.service.impl;
 
 import com.company.student.app.config.security.TenantContext;
 import com.company.student.app.config.security.UserSession;
+import com.company.student.app.dto.log.AuditingLogResponse;
 import com.company.student.app.dto.response.HttpApiResponse;
 import com.company.student.app.dto.response.UserMeResponse;
 import com.company.student.app.dto.systemAdmin.SuperAdminResponse;
@@ -17,6 +18,7 @@ import com.company.student.app.service.mapper.AddressMapper;
 import com.company.student.app.service.mapper.SuperAdminMapper;
 import com.company.student.app.service.mapper.UniversityAdminMapper;
 import com.company.student.app.service.mapper.UniversityMapper;
+import com.company.student.app.utils.AuditingLogService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -54,6 +56,8 @@ public class SuperAdminServiceImpl implements SuperAdminService {
     private final CourseAssignmentRepository courseAssignmentRepository;
     private final TimeTableRepository timeTableRepository;
     private final AddressMapper addressMapper;
+    private final AuditingLogService auditingLogService;
+    private final AuditingLogRepository auditingLogRepository;
 
     @Override
     @Transactional
@@ -65,7 +69,7 @@ public class SuperAdminServiceImpl implements SuperAdminService {
         if (authUserRepository.existsByUsernameAndOrganizationIdAndDeletedAtIsNull(request.getEmail(), universityId)) {
             throw new IllegalArgumentException("email.already.exists");
         }
-        if (universityAdminProfileRepository.existsUniversityAdminProfileByEmailAndOrganizationId(request.getEmail(),universityId)) {
+        if (universityAdminProfileRepository.existsUniversityAdminProfileByEmailAndOrganizationId(request.getEmail(), universityId)) {
             throw new IllegalArgumentException("email.already.exists");
         }
 
@@ -88,6 +92,12 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                 .role(UniversityRole.UNIVERSITY_ADMIN)
                 .build();
         universityUserRoleRepository.save(role);
+
+        auditingLogService.log(userSession.universityId(),
+                userSession.getCurrentUser(),
+                userSession.ip(), userSession.userAgent(),
+                userSession.deviceKey(),
+                "University Admin Created");
 
         return HttpApiResponse.<Long>builder()
                 .success(true)
@@ -160,6 +170,19 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public HttpApiResponse<Page<AuditingLogResponse>> getAllAuditingLog(Pageable pageable, Long orgId) {
+        Page<AuditingLog> auditingLogs = auditingLogRepository.findAllByDeletedAtIsNull(pageable, orgId);
+
+        return HttpApiResponse.<Page<AuditingLogResponse>>builder()
+                .success(true)
+                .status(200)
+                .message("ok")
+                .data(auditingLogs.map(auditingLogService::mapToResponse))
+                .build();
+    }
+
     @Transactional
     @Override
     public HttpApiResponse<Boolean> deleteUniversity(Long universityId) {
@@ -185,6 +208,13 @@ public class SuperAdminServiceImpl implements SuperAdminService {
 
         university.setDeletedAt(now);
 
+        auditingLogService.log(userSession.universityId(),
+                userSession.getCurrentUser(),
+                userSession.ip(),
+                userSession.userAgent(),
+                userSession.deviceKey(),
+                " University deleted: " + university.getName());
+
         return HttpApiResponse.<Boolean>builder()
                 .success(true)
                 .status(200)
@@ -204,6 +234,13 @@ public class SuperAdminServiceImpl implements SuperAdminService {
         }
         University university = universityMapper.mapToEntity(dto);
         universityRepository.save(university);
+
+        auditingLogService.log(userSession.universityId(),
+                userSession.getCurrentUser(),
+                userSession.ip(),
+                userSession.userAgent(),
+                userSession.deviceKey(),
+                " University created: " + university.getName());
 
         return HttpApiResponse.<Long>builder()
                 .success(true)
@@ -244,6 +281,13 @@ public class SuperAdminServiceImpl implements SuperAdminService {
 
         systemAdminProfile.getUser().setPassword(passwordEncoder.encode(newPassword));
         superAdminRepository.save(systemAdminProfile);
+
+        auditingLogService.log(userSession.universityId(),
+                userSession.getCurrentUser(),
+                userSession.ip(),
+                userSession.userAgent(),
+                userSession.deviceKey(),
+                " System admin password updated");
 
         return HttpApiResponse.<Boolean>builder()
                 .success(true)

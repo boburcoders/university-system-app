@@ -13,6 +13,7 @@ public class TimeTableResponse {
     private Long id;
     private String groupName;
     private String courseCode;
+    private String courseTitle;
     private String day;
     private Integer roomNumber;
     private String teacherFullName;

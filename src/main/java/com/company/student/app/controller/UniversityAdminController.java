@@ -24,6 +24,7 @@ import com.company.student.app.dto.teacher.TeacherCreateRequest;
 import com.company.student.app.dto.teacher.TeacherShortResponseDto;
 import com.company.student.app.dto.timetable.TimeTableRequest;
 import com.company.student.app.dto.timetable.TimeTableResponse;
+import com.company.student.app.dto.timetable.TimeTableUpdateRequest;
 import com.company.student.app.dto.univerAdmin.StatisticResponse;
 import com.company.student.app.dto.univerAdmin.UniversityAdminProfileResponse;
 import com.company.student.app.dto.univerAdmin.UniversityAdminUpdateRequest;
@@ -48,7 +49,7 @@ import java.util.List;
 @RequestMapping("/api/univer-admin")
 @PreAuthorize("hasRole('UNIVERSITY_ADMIN')")
 public class UniversityAdminController {
-    private final UniversityAdminService    universityAdminService;
+    private final UniversityAdminService universityAdminService;
 
     @PostMapping("/teacher")
     public ResponseEntity<HttpApiResponse<Long>> createTeacher(@RequestBody @Valid TeacherCreateRequest request) {
@@ -148,7 +149,7 @@ public class UniversityAdminController {
             @RequestParam(required = false) Long groupId,
             @RequestParam(required = false) Long roomId
     ) {
-        HttpApiResponse<List<TimeTableResponse>> response = universityAdminService.getTimeTable(teacherId, groupId,roomId);
+        HttpApiResponse<List<TimeTableResponse>> response = universityAdminService.getTimeTable(teacherId, groupId, roomId);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
@@ -276,6 +277,7 @@ public class UniversityAdminController {
         HttpApiResponse<Boolean> response = universityAdminService.updateGroup(groupId, request);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
+
     @PutMapping("/room/{roomId}")
     public ResponseEntity<HttpApiResponse<Boolean>> updateRoom(
             @PathVariable Long roomId,
@@ -285,6 +287,21 @@ public class UniversityAdminController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
+    @PutMapping("/time-table/{id}")
+    public ResponseEntity<HttpApiResponse<Boolean>> updateTimeTable(
+            @PathVariable Long id,
+            @RequestBody TimeTableUpdateRequest request
+    ) {
+        HttpApiResponse<Boolean> response = universityAdminService.updateTimeTable(id, request);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+    @DeleteMapping("/time-table")
+    public ResponseEntity<HttpApiResponse<Boolean>> deleteTimeTable(
+            @RequestParam Long timeTableId
+    ) {
+        HttpApiResponse<Boolean> response = universityAdminService.deleteTimeTable(timeTableId);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
     @DeleteMapping("/room")
     public ResponseEntity<HttpApiResponse<Boolean>> deleteRoom(
             @RequestParam Long roomId
