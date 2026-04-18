@@ -17,6 +17,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.HexFormat;
 
 @Component
 @RequiredArgsConstructor
@@ -70,14 +73,15 @@ public class JwtFilter extends OncePerRequestFilter {
                                 userDetails.getAuthorities()
                         );
 
-                String ip = request.getRemoteAddr();
+                String ip = getClientIp(request);
+
                 String userAgent = request.getHeader("User-Agent");
-                String deviceKey = generateDeviceKey(ip, userAgent, userDetails.getUserId());
+
+                String deviceKey = generateDeviceKey(userAgent, userDetails.getUserId());
 
                 authToken.setDetails(
                         new CustomAuthenticationDetails(ip, userAgent, deviceKey)
                 );
-
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
 
@@ -91,9 +95,33 @@ public class JwtFilter extends OncePerRequestFilter {
         }
     }
 
-    private String generateDeviceKey(String ip, String userAgent, Long userId) {
-        String raw = userId + "|" + ip + "|" + userAgent;
-        return Integer.toHexString(raw.hashCode());
+    // Correct IP extraction (works with Nginx + Docker)
+    private String getClientIp(HttpServletRequest request) {
+        String xff = request.getHeader("X-Forwarded-For");
+        if (xff != null && !xff.isEmpty() && !"unknown".equalsIgnoreCase(xff)) {
+            return xff.split(",")[0].trim();
+        }
+
+        String realIp = request.getHeader("X-Real-IP");
+        if (realIp != null && !realIp.isEmpty()) {
+            return realIp;
+        }
+
+        return request.getRemoteAddr();
+    }
+
+    // Stable device key (no IP dependency)
+    private String generateDeviceKey(String userAgent, Long userId) {
+        try {
+            String raw = userId + "|" + userAgent;
+
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] hash = md.digest(raw.getBytes(StandardCharsets.UTF_8));
+
+            return HexFormat.of().formatHex(hash);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate device key", e);
+        }
     }
 
     private void sendUnauthorized(HttpServletResponse response, String message) throws IOException {
